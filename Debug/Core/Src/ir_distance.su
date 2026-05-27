@@ -1,0 +1,5 @@
+../Core/Src/ir_distance.c:27:13:delay_us	24	static
+../Core/Src/ir_distance.c:33:13:set_emitters	24	static
+../Core/Src/ir_distance.c:41:17:read_adc_channel	40	static
+../Core/Src/ir_distance.c:60:6:IR_Distance_Init	8	static
+../Core/Src/ir_distance.c:65:6:IR_Distance_Read	16	static

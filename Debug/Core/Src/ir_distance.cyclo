@@ -1,0 +1,5 @@
+../Core/Src/ir_distance.c:27:13:delay_us	2
+../Core/Src/ir_distance.c:33:13:set_emitters	2
+../Core/Src/ir_distance.c:41:17:read_adc_channel	2
+../Core/Src/ir_distance.c:60:6:IR_Distance_Init	1
+../Core/Src/ir_distance.c:65:6:IR_Distance_Read	4

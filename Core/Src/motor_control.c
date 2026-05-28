@@ -1,6 +1,7 @@
 #include "motor_control.h"
 #include "tim.h"
 #include <math.h>
+#include "ir_distance.h" // Added to access ir_data for wall centering
 
 // ========== HARDWARE MAPPING ==========
 // Right Encoder: TIM2
@@ -32,6 +33,7 @@ float Kp_left = 10.0f;
 float Ki_left = 0.0f;   
 float Kd_left = 600.0f;
 float Kp_balancer = 7.0f;
+float Kp_wall = 3.5f; // Wall Centering Proportional Gain - Tune this!
 
 // PID Variables
 static int32_t target_position_right = 0;  
@@ -200,10 +202,24 @@ void Motor_Control_Update(void) {
     int32_t pwm_right = (int32_t)(P_right + I_right + D_right);
     int32_t pwm_left = (int32_t)(P_left + I_left + D_left);
 
-    // Balancer
+    // 1. Encoder Balancer (keeps wheels synced on straights)
     int16_t error_diffrence = error_right - error_left;
     int32_t P_diffrence = Kp_balancer * error_diffrence;
     pwm_right -= P_diffrence;
+
+    // 2. IR Wall Centering Logic
+    // Index 0 = Left-most sensor, Index 5 = Right-most sensor
+    // Only center if we are actively between TWO walls
+    if (ir_data.binary_walls[0] == 1 && ir_data.binary_walls[5] == 1) {
+        
+        // Error > 0 means Right wall is closer. Error < 0 means Left wall is closer.
+        int32_t wall_error = ir_data.value[5] - ir_data.value[0];
+        int32_t wall_correction = (int32_t)(Kp_wall * wall_error);
+        
+        // Steer away from the closer wall
+        pwm_left -= wall_correction;
+        pwm_right += wall_correction;
+    }
 
     // Apply Output
     Motor_SetPWM_Right(apply_deadband(pwm_right));

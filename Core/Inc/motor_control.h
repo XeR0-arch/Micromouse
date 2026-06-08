@@ -13,12 +13,16 @@ extern float Ki_left;
 extern float Kd_left;
 
 extern float Kp_balancer;
+extern float Kp_wall; // Added for wall centering tuning
 
 // Initialize Encoders and PWMs
 void Motor_Control_Init(void);
 
 // Immediately stop the motors
 void Motor_Control_Stop(void);
+
+// Actively lock the motors in place to prevent coasting
+void Motor_Active_Brake(void);
 
 // Set motor PWM directly (for manual modes)
 void Motor_SetPWM_Right(int32_t pwm);
@@ -27,6 +31,9 @@ void Motor_SetPWM_Left(int32_t pwm);
 // Movement commands (non-blocking setup)
 // Move a distance in cm
 void Motor_Move_Cm(float distance_cm);
+
+// Move a precise number of encoder ticks (for small stepper-like movements)
+void Motor_Move_Ticks(int32_t target_ticks);
 
 // Turn a specific angle in degrees
 void Motor_Turn_Degrees(float angle);

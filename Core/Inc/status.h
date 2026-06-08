@@ -1,9 +1,9 @@
-#ifndef __STATUS_H
-#define __STATUS_H
+#ifndef STATUS_H
+#define STATUS_H
 
-#include "main.h"
+#include "stm32f4xx_hal.h"
 
-// System States
+// Define the system states
 typedef enum {
     STATE_EXPLORE,
     STATE_TRY_1,
@@ -12,33 +12,20 @@ typedef enum {
     STATE_RUN
 } SystemState_t;
 
-// PC13 Error / Status Codes (Blinks)
+// Define specific blink codes for your components
 typedef enum {
-    STATUS_OK = 0,
-    STATUS_MPU_DETECTED = 2,
-    STATUS_MPU_CALIBRATED = 3,
-    STATUS_IR_CALIBRATED = 4,
-    // Add more as needed
-    ERROR_GENERAL = 10,
-    ERROR_I2C = 11,
-    ERROR_TIMEOUT = 12
+    STATUS_OK = 0,               // Solid ON or OFF
+    STATUS_ERR_MOTOR = 1,        // 1 Blink: N20 Motor/Encoder missing signal
+    STATUS_ERR_IR = 2,           // 2 Blinks: IR sensor disconnected/bad read
+    STATUS_ERR_MPU6050 = 3,      // 3 Blinks: MPU6050 I2C failure
+    STATUS_ERR_BUCK = 4          // 4 Blinks: MP1584 Voltage drop (if monitoring ADC)
 } StatusCode_t;
 
-// Init function
 void Status_Init(void);
-
-// Non-blocking update function (call in main while(1))
-void Status_Update(void);
-
-// Set System State
 void Status_SetState(SystemState_t new_state);
 SystemState_t Status_GetState(void);
-
-// Set PC13 Status/Error Code (Number of blinks)
-// is_fast: if true, blinks fast (error), else slow (status)
-void Status_SetMessage(StatusCode_t code, uint8_t is_fast);
-
-// Directly set mode LEDs
 void Status_SetModeLEDs(uint8_t led1, uint8_t led2, uint8_t led3);
+void Status_SetMessage(StatusCode_t code, uint8_t is_fast);
+void Status_Update(void);
 
-#endif /* __STATUS_H */
+#endif // STATUS_H

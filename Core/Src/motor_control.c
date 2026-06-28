@@ -1,17 +1,18 @@
 #include "motor_control.h"
 #include "tim.h"
 #include <math.h>
+#include "stdbool.h"
 
 // ========== HARDWARE MAPPING ==========
 // Right Encoder: TIM2
 // Left Encoder:  TIM5
-// Right Motor:   TIM3 CH1 & CH2
-// Left Motor:    TIM3 CH3 & CH4
+// Right Motor:   TIM1 CH1 & CH4 (PA8 & PA11)
+// Left Motor:    TIM3 CH3 & CH4 (PB0 & PB1)
 
 // ========== CONFIGURATION ==========
 #define WHEELBASE_CM 7.8f  
 #define WHEEL_DIAMETER_CM 2.72f  
-#define ENCODER_COUNTS_PER_MOTOR_REV 1440.0f  // (4 * 360)
+#define ENCODER_COUNTS_PER_MOTOR_REV 576.0f  // (4 * 144)
 #define GEAR_RATIO 2.0f  
 
 #define WHEEL_CIRCUMFERENCE_CM (3.14159f * WHEEL_DIAMETER_CM)  
@@ -19,10 +20,13 @@
 #define CM_PER_COUNT (WHEEL_CIRCUMFERENCE_CM / COUNTS_PER_WHEEL_REV)  
 #define COUNTS_PER_CM (COUNTS_PER_WHEEL_REV / WHEEL_CIRCUMFERENCE_CM)  
 
-#define DEADBAND 1600  
+#define DEADBAND 0
 #define MAX_PWM  4999   
 
 #define POSITION_TOLERANCE 2  
+
+#define TARGET_IR_LEFT  2000 // ADC value when perfectly centered
+#define TARGET_IR_RIGHT 2000 // ADC value when perfectly centered
 
 // PID Constants
 float Kp_right = 10.0f;  
@@ -31,6 +35,7 @@ float Kd_right = 600.0f;
 float Kp_left = 10.0f;   
 float Ki_left = 0.0f;   
 float Kd_left = 600.0f;
+float Kp_ir = 5.0f; // Tune this: start low
 float Kp_balancer = 7.0f;
 
 // PID Variables
@@ -76,13 +81,15 @@ void Motor_Control_Init(void) {
     HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
     HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_ALL);
 
-    // Start PWM
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    // Start Right Motor PWM — TIM1 normal channels (CH1 on PA8, CH4 on PA11)
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+    // Start Left Motor PWM — TIM3 channels (CH3, CH4 on PB0, PB1)
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 
-    // Start TIM4 for PID Interrup Loop
+    // Start TIM4 for PID Interrupt Loop
     HAL_TIM_Base_Start_IT(&htim4);
 }
 
@@ -91,14 +98,14 @@ void Motor_SetPWM_Right(int32_t pwm) {
     if (pwm < -MAX_PWM) pwm = -MAX_PWM;
 
     if (pwm > 0) {
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm);
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
     } else if (pwm < 0) {
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, -pwm);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, -pwm);
     } else {
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
     }
 }
 
@@ -201,9 +208,45 @@ void Motor_Control_Update(void) {
     int32_t pwm_left = (int32_t)(P_left + I_left + D_left);
 
     // Balancer
-    int16_t error_diffrence = error_right - error_left;
-    int32_t P_diffrence = Kp_balancer * error_diffrence;
-    pwm_right -= P_diffrence;
+//    int32_t ir_left_val = get_ir_left();
+//	int32_t ir_right_val = get_ir_right();
+//	int32_t ir_front_left_val = get_ir_front_left();
+//	int32_t ir_front_right_val = get_ir_front_right();
+
+	int32_t ir_error = 0;
+
+	// 2. Determine wall states
+//	bool has_left_wall = (ir_left_val > 500);
+//	bool has_right_wall = (ir_right_val > 500);
+//	bool has_front_wall = (ir_front_left_val > 500) && (ir_front_right_val > 500);
+
+	// 3. Hierarchy of Alignment
+//	if (has_left_wall && has_right_wall) {
+//		// Track the center line between side walls
+//		ir_error = ir_left_val - ir_right_val;
+//	} else if (has_left_wall) {
+//		// Track a fixed distance from the left wall
+//		ir_error = ir_left_val - TARGET_IR_LEFT;
+//	} else if (has_right_wall) {
+//		// Track a fixed distance from the right wall
+//		ir_error = TARGET_IR_RIGHT - ir_right_val;
+//	} else if (has_front_wall) {
+//		// Square up against the front wall during approach
+//		// If angled left, left sensor reads higher -> positive error -> speeds left motor, slows right motor -> turns right.
+//		ir_error = ir_front_left_val - ir_front_right_val;
+//	} else {
+//		// No walls present (e.g., center of an open junction).
+//		// ir_error remains 0. System defaults to pure encoder synchronization.
+//		ir_error = 0;
+//	}
+
+	// 4. Calculate Combined Correction
+	int16_t encoder_difference = error_right - error_left;
+	int32_t correction = (Kp_balancer * encoder_difference) + (Kp_ir * ir_error);
+
+	// 5. Apply Symmetrically
+	pwm_right -= correction;
+	pwm_left  += correction;
 
     // Apply Output
     Motor_SetPWM_Right(apply_deadband(pwm_right));

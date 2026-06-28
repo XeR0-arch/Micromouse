@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -35,6 +35,8 @@
 #include "mpu6050.h"
 #include "status.h"
 #include "uart.h"
+#include "navigation.h"
+#include "floodfill.h"
 
 /* USER CODE END Includes */
 
@@ -107,18 +109,43 @@ int main(void)
   MX_TIM5_Init();
   MX_USART1_UART_Init();
   MX_TIM4_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+	Motor_Control_Init();
+//  Navigation_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  // === TEST: LEFT motor (LED ON), then RIGHT motor (LED OFF) ===
+	  for(int i = 0; i < 5000;i+=100){
+		  Motor_SetPWM_Left(i);
+		  HAL_Delay(1000);
+		  Motor_SetPWM_Left(0);
+		  HAL_Delay(1000);
+	  }
+//	  Motor_Move_Cm(10.0);
+//	  HAL_Delay(1000);
+//    Status_Update(); // Check button presses and update status blinking
+//
+//    // If start/run button is pressed and we are in run mode
+//    if (Status_GetState() == STATE_RUN) {
+//        Navigation_LoopStep(); // Execute one search step
+//        // Check if goal cell is reached (cell value is 0)
+//        if (maze[x][y].value == 0) {
+//            Status_SetState(STATE_EXPLORE); // Revert to explore/idle
+//            Motor_Control_Stop(); // Stop mouse
+//        }
+//    } else {
+//        // Continuous sensor/gyro updates (50Hz / 20ms) when mouse is idle
+//        Navigation_DelayOrUpdate(20);
+//    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -178,11 +205,10 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT

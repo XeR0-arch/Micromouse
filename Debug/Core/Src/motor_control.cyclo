@@ -1,7 +1,7 @@
 ../Core/Src/motor_control.c:54:16:abs_int	1
 ../Core/Src/motor_control.c:58:16:apply_deadband	5
-../Core/Src/motor_control.c:64:16:get_encoder_right	1
-../Core/Src/motor_control.c:68:16:get_encoder_left	1
+../Core/Src/motor_control.c:64:9:get_encoder_right	1
+../Core/Src/motor_control.c:68:9:get_encoder_left	1
 ../Core/Src/motor_control.c:72:13:reset_pid	1
 ../Core/Src/motor_control.c:79:6:Motor_Control_Init	1
 ../Core/Src/motor_control.c:96:6:Motor_SetPWM_Right	5

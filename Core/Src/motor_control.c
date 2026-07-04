@@ -12,15 +12,15 @@
 // ========== CONFIGURATION ==========
 #define WHEELBASE_CM 7.8f  
 #define WHEEL_DIAMETER_CM 2.72f  
-#define ENCODER_COUNTS_PER_MOTOR_REV 576.0f  // (4 * 144)
-#define GEAR_RATIO 2.0f  
+#define ENCODER_COUNTS_PER_MOTOR_REV 576.0f/2.0  // (4 * 144) 1440
+#define GEAR_RATIO 1.5f
 
 #define WHEEL_CIRCUMFERENCE_CM (3.14159f * WHEEL_DIAMETER_CM)  
 #define COUNTS_PER_WHEEL_REV (ENCODER_COUNTS_PER_MOTOR_REV / GEAR_RATIO)  
 #define CM_PER_COUNT (WHEEL_CIRCUMFERENCE_CM / COUNTS_PER_WHEEL_REV)  
 #define COUNTS_PER_CM (COUNTS_PER_WHEEL_REV / WHEEL_CIRCUMFERENCE_CM)  
 
-#define DEADBAND 0
+#define DEADBAND 1000
 #define MAX_PWM  4999   
 
 #define POSITION_TOLERANCE 2  
@@ -29,12 +29,12 @@
 #define TARGET_IR_RIGHT 2000 // ADC value when perfectly centered
 
 // PID Constants
-float Kp_right = 10.0f;  
+float Kp_right = 8.0f;
 float Ki_right = 0.0f;   
-float Kd_right = 600.0f; 
-float Kp_left = 10.0f;   
+float Kd_right = 300.0f;
+float Kp_left = 8.0f;
 float Ki_left = 0.0f;   
-float Kd_left = 600.0f;
+float Kd_left = 300.0f;
 float Kp_ir = 5.0f; // Tune this: start low
 float Kp_balancer = 7.0f;
 
@@ -61,11 +61,11 @@ static int32_t apply_deadband(int32_t pwm) {
     return pwm;
 }
 
-static int32_t get_encoder_right(void) {
+int32_t get_encoder_right(void) {
     return (int32_t)__HAL_TIM_GET_COUNTER(&htim2);
 }
 
-static int32_t get_encoder_left(void) {
+int32_t get_encoder_left(void) {
     return (int32_t)__HAL_TIM_GET_COUNTER(&htim5);
 }
 
@@ -97,10 +97,10 @@ void Motor_SetPWM_Right(int32_t pwm) {
     if (pwm > MAX_PWM) pwm = MAX_PWM;
     if (pwm < -MAX_PWM) pwm = -MAX_PWM;
 
-    if (pwm > 0) {
+    if (pwm < 0) {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm);
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
-    } else if (pwm < 0) {
+    } else if (pwm > 0) {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, -pwm);
     } else {
@@ -113,10 +113,10 @@ void Motor_SetPWM_Left(int32_t pwm) {
     if (pwm > MAX_PWM) pwm = MAX_PWM;
     if (pwm < -MAX_PWM) pwm = -MAX_PWM;
 
-    if (pwm > 0) {
+    if (pwm < 0) {
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pwm);
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 0);
-    } else if (pwm < 0) {
+    } else if (pwm > 0) {
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, 0);
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, -pwm);
     } else {

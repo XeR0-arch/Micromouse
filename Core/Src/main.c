@@ -42,7 +42,11 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM4) {
+		void Motor_Control_Update();
+	}
+}
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -112,20 +116,25 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 	Motor_Control_Init();
+	char msg[50];
 //  Navigation_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-	  // === TEST: LEFT motor (LED ON), then RIGHT motor (LED OFF) ===
-	  for(int i = 0; i < 5000;i+=100){
-		  Motor_SetPWM_Left(i);
-		  HAL_Delay(1000);
-		  Motor_SetPWM_Left(0);
-		  HAL_Delay(1000);
-	  }
+
+	//Motor_Move_Cm(10.0);
+	while (1) {
+//		int32_t a = get_encoder_left();
+//		int32_t b = get_encoder_right();
+//		sprintf(msg,"%lu||%lu\n\r",a,b);
+//		UART_Print(msg);
+		Motor_Move_Cm(10.0);
+		HAL_Delay(10000);
+		// === TEST: LEFT motor (LED ON), then RIGHT motor (LED OFF) ===
+//		Motor_SetPWM_Right(1000);
+//		Motor_SetPWM_Left(1000);
+
 //	  Motor_Move_Cm(10.0);
 //	  HAL_Delay(1000);
 //    Status_Update(); // Check button presses and update status blinking

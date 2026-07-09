@@ -44,7 +44,10 @@
 /* USER CODE BEGIN PTD */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM4) {
-		void Motor_Control_Update();
+		Motor_Control_Update();
+	}
+	if (htim->Instance == TIM10) {
+		IR_Tick();  // Non-blocking: alternates ambient/active reads at 40Hz
 	}
 }
 /* USER CODE END PTD */
@@ -114,9 +117,12 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM4_Init();
   MX_TIM1_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
 	Motor_Control_Init();
-	char msg[50];
+	IR_Distance_Init();
+	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 interrupt for 20Hz IR loop
+	//char msg[50];
 //  Navigation_Init();
   /* USER CODE END 2 */
 
@@ -124,33 +130,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 	//Motor_Move_Cm(10.0);
+	char msg[128];
 	while (1) {
-//		int32_t a = get_encoder_left();
-//		int32_t b = get_encoder_right();
-//		sprintf(msg,"%lu||%lu\n\r",a,b);
-//		UART_Print(msg);
-		Motor_Move_Cm(10.0);
-		HAL_Delay(10000);
-		// === TEST: LEFT motor (LED ON), then RIGHT motor (LED OFF) ===
-//		Motor_SetPWM_Right(1000);
-//		Motor_SetPWM_Left(1000);
-
-//	  Motor_Move_Cm(10.0);
-//	  HAL_Delay(1000);
-//    Status_Update(); // Check button presses and update status blinking
-//
-//    // If start/run button is pressed and we are in run mode
-//    if (Status_GetState() == STATE_RUN) {
-//        Navigation_LoopStep(); // Execute one search step
-//        // Check if goal cell is reached (cell value is 0)
-//        if (maze[x][y].value == 0) {
-//            Status_SetState(STATE_EXPLORE); // Revert to explore/idle
-//            Motor_Control_Stop(); // Stop mouse
-//        }
-//    } else {
-//        // Continuous sensor/gyro updates (50Hz / 20ms) when mouse is idle
-//        Navigation_DelayOrUpdate(20);
-//    }
+		// Print IR readings over UART for verification
+		// Format: raw values | distances | steering error
+		sprintf(msg, "RAW: %d %d %d %d | DIST: %d %d %d %d | STEER: %ld\r\n",
+				ir_data.value[0], ir_data.value[1],
+				ir_data.value[2], ir_data.value[3],
+				ir_data.distance[0], ir_data.distance[1],
+				ir_data.distance[2], ir_data.distance[3],
+				(long)ir_steering_error);
+		UART_Print(msg);
+		HAL_Delay(200);  // Print at ~5Hz to keep terminal readable
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

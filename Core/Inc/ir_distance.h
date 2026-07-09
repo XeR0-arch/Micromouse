@@ -17,11 +17,22 @@ typedef struct {
 
 extern IR_Data_t ir_data;
 
+// Steering error computed by IR_Distance(): distance[0] - distance[3]
+// Positive = closer to left wall, negative = closer to right wall
+extern int32_t ir_steering_error;
+
 // Initialize IR subsystem
 void IR_Distance_Init(void);
 
-// Perform a full reading of all IR sensors (Ambient Rejection)
-// Note: Blocks for a short period (~few milliseconds) to allow capacitors to charge
-void IR_Distance_Read(void);
+// Non-blocking IR read state machine — call at 40Hz from TIM10
+// Alternates: read ambient (emitters OFF) → read active (emitters ON)
+// Effective update rate: 20Hz, ISR duration: ~200us (no blocking delays)
+void IR_Tick(void);
+
+// Convert raw IR values to distance using calibration curves
+void IR_Distance(void);
+
+// Determine wall presence from distance data
+void GET_Walls(void);
 
 #endif /* __IR_DISTANCE_H */

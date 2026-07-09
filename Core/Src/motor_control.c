@@ -1,4 +1,5 @@
 #include "motor_control.h"
+#include "ir_distance.h"
 #include "tim.h"
 #include <math.h>
 #include "stdbool.h"
@@ -11,9 +12,9 @@
 
 // ========== CONFIGURATION ==========
 #define WHEELBASE_CM 7.8f  
-#define WHEEL_DIAMETER_CM 2.72f  
-#define ENCODER_COUNTS_PER_MOTOR_REV 576.0f/2.0  // (4 * 144) 1440
-#define GEAR_RATIO 1.5f
+#define WHEEL_DIAMETER_CM 3.16f
+#define ENCODER_COUNTS_PER_MOTOR_REV 1440//576  // (4 * 144) 1440
+#define GEAR_RATIO 1.527f
 
 #define WHEEL_CIRCUMFERENCE_CM (3.14159f * WHEEL_DIAMETER_CM)  
 #define COUNTS_PER_WHEEL_REV (ENCODER_COUNTS_PER_MOTOR_REV / GEAR_RATIO)  
@@ -29,22 +30,22 @@
 #define TARGET_IR_RIGHT 2000 // ADC value when perfectly centered
 
 // PID Constants
-float Kp_right = 8.0f;
+float Kp_right = 10.0f;
 float Ki_right = 0.0f;   
-float Kd_right = 300.0f;
-float Kp_left = 8.0f;
-float Ki_left = 0.0f;   
-float Kd_left = 300.0f;
+float Kd_right = 650.0f;
+float Kp_left = 10.0f;
+float Ki_left = 0.0f;
+float Kd_left = 650.0f;
 float Kp_ir = 5.0f; // Tune this: start low
 float Kp_balancer = 7.0f;
 
 // PID Variables
-static int32_t target_position_right = 0;  
+int32_t target_position_right = 0;  
 static int32_t start_position_right = 0;   
 static float integral_right = 0.0f;
 static int32_t prev_error_right = 0;
 
-static int32_t target_position_left = 0;  
+int32_t target_position_left = 0;  
 static int32_t start_position_left = 0;   
 static float integral_left = 0.0f;
 static int32_t prev_error_left = 0;
@@ -213,7 +214,7 @@ void Motor_Control_Update(void) {
 //	int32_t ir_front_left_val = get_ir_front_left();
 //	int32_t ir_front_right_val = get_ir_front_right();
 
-	int32_t ir_error = 0;
+	int32_t ir_error = ir_steering_error;  // From 20Hz IR_Distance() loop
 
 	// 2. Determine wall states
 //	bool has_left_wall = (ir_left_val > 500);

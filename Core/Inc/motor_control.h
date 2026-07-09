@@ -14,6 +14,10 @@ extern float Kd_left;
 
 extern float Kp_balancer;
 
+// Target position variables (modified by IR wall correction)
+extern int32_t target_position_right;
+extern int32_t target_position_left;
+
 // Initialize Encoders and PWMs
 void Motor_Control_Init(void);
 

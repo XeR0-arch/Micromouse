@@ -134,14 +134,10 @@ int main(void)
 	while (1) {
 		// Print IR readings over UART for verification
 		// Format: raw values | distances | steering error
-		sprintf(msg, "RAW: %d %d %d %d | DIST: %d %d %d %d | STEER: %ld\r\n",
-				ir_data.value[0], ir_data.value[1],
-				ir_data.value[2], ir_data.value[3],
-				ir_data.distance[0], ir_data.distance[1],
-				ir_data.distance[2], ir_data.distance[3],
-				(long)ir_steering_error);
-		UART_Print(msg);
-		HAL_Delay(200);  // Print at ~5Hz to keep terminal readable
+//		sprintf(msg, "%lu , %lu\n\r",(int32_t)__HAL_TIM_GET_COUNTER(&htim2),(int32_t)__HAL_TIM_GET_COUNTER(&htim5));
+//		UART_Print(msg);
+		Motor_Move_Cm(24.0);
+		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

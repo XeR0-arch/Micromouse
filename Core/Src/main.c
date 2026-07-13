@@ -136,8 +136,22 @@ int main(void)
 		// Format: raw values | distances | steering error
 //		sprintf(msg, "%lu , %lu\n\r",(int32_t)__HAL_TIM_GET_COUNTER(&htim2),(int32_t)__HAL_TIM_GET_COUNTER(&htim5));
 //		UART_Print(msg);
-		Motor_Move_Cm(24.0);
+		Motor_Move_Cm(-24.0);
 		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+		Motor_Turn_Degrees(90);
+		HAL_Delay(3000);
+		Motor_Move_Cm(-24.0);
+		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+		Motor_Turn_Degrees(90);
+		HAL_Delay(3000);
+		Motor_Move_Cm(-24.0);
+		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+		Motor_Turn_Degrees(90);
+		HAL_Delay(3000);
+		Motor_Move_Cm(-24.0);
+		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+		Motor_Turn_Degrees(90);
+		HAL_Delay(3000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

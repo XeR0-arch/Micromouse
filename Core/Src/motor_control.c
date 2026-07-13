@@ -14,14 +14,14 @@
 #define WHEELBASE_CM 7.8f  
 #define WHEEL_DIAMETER_CM 3.16f
 #define ENCODER_COUNTS_PER_MOTOR_REV 1440//576  // (4 * 144) 1440
-#define GEAR_RATIO 1.527f
+#define GEAR_RATIO 1.0f
 
 #define WHEEL_CIRCUMFERENCE_CM (3.14159f * WHEEL_DIAMETER_CM)  
 #define COUNTS_PER_WHEEL_REV (ENCODER_COUNTS_PER_MOTOR_REV / GEAR_RATIO)  
 #define CM_PER_COUNT (WHEEL_CIRCUMFERENCE_CM / COUNTS_PER_WHEEL_REV)  
 #define COUNTS_PER_CM (COUNTS_PER_WHEEL_REV / WHEEL_CIRCUMFERENCE_CM)  
 
-#define DEADBAND 1000
+#define DEADBAND 1600
 #define MAX_PWM  4999   
 
 #define POSITION_TOLERANCE 2  
@@ -30,10 +30,10 @@
 #define TARGET_IR_RIGHT 2000 // ADC value when perfectly centered
 
 // PID Constants
-float Kp_right = 10.0f;
+float Kp_right = 1.5f;
 float Ki_right = 0.0f;   
 float Kd_right = 650.0f;
-float Kp_left = 10.0f;
+float Kp_left = 1.5f;
 float Ki_left = 0.0f;
 float Kd_left = 650.0f;
 float Kp_ir = 0.0f; // Tune this: start low

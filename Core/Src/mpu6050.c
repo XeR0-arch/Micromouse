@@ -18,9 +18,8 @@ uint8_t MPU6050_Init(void) {
     uint8_t config_config = 0x02;      // dlpf value to 2 (98Hz bandwidth, 3ms delay for Gyro)
     uint8_t smprt_div_config = 0x04;   // 200Hz sampling (if dlpf is on)
     uint8_t gyro_config_config = 0x08; // range +-500 deg/s
-    uint8_t accel_config_config = 0x00;
+    uint8_t accel_config_config = 0x00; // range +-2g
     
-    uint8_t check;
     // Check if MPU6050 replies
     if (HAL_I2C_IsDeviceReady(&hi2c1, MPU_6050_ADDR, 3, 100) != HAL_OK) {
         return 0; // Failed
@@ -59,11 +58,21 @@ void MPU6050_Calibrate(void) {
 void MPU6050_Update(float dt) {
     if (!mpu.is_calibrated) return;
 
-    uint8_t data[2];
-    // Start reading at Gyro Z H (register 0x47)
-    // 0x47 = GYRO_ZOUT_H, 0x48 = GYRO_ZOUT_L
-    if (HAL_I2C_Mem_Read(&hi2c1, MPU_6050_ADDR, 0x47, 1, data, 2, 10) == HAL_OK) {
-        mpu.raw_gz = (int16_t)(data[0] << 8 | data[1]);
+    uint8_t data[14];
+    // Start reading 14 bytes from 0x3B (Accel X) to 0x48 (Gyro Z L)
+    if (HAL_I2C_Mem_Read(&hi2c1, MPU_6050_ADDR, OUTPUT_START_REGISTER, 1, data, 14, 10) == HAL_OK) {
+        
+        // Accel data (Registers 0x3B to 0x40)
+        mpu.raw_ax = (int16_t)(data[0] << 8 | data[1]);
+        mpu.raw_ay = (int16_t)(data[2] << 8 | data[3]);
+        mpu.raw_az = (int16_t)(data[4] << 8 | data[5]);
+        
+        // Convert to g's. For +-2g range, scale factor is 16384 LSB/g
+        mpu.ax = (float)mpu.raw_ax / 16384.0f;
+        mpu.ay = (float)mpu.raw_ay / 16384.0f;
+
+        // Gyro data (Registers 0x43 to 0x48) - Z axis is at index 12 & 13
+        mpu.raw_gz = (int16_t)(data[12] << 8 | data[13]);
         
         // Remove offset
         int16_t gz_calibrated = mpu.raw_gz - mpu.cal_gz;

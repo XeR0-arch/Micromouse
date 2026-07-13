@@ -3,6 +3,18 @@
 
 #include "main.h"
 
+// ========== HARDWARE CONFIGURATION ==========
+// Set to 1 if the motor drives backward when given a positive PWM.
+// Set to 0 if the motor drives forward when given a positive PWM.
+#define INVERT_LEFT_MOTOR  0
+#define INVERT_RIGHT_MOTOR 0
+
+// Feedforward Scale: Used to balance base motor speeds before PID
+// If the bot drifts right, it means the right motor is faster (or left is slower).
+// Set the faster motor to < 1.0 (e.g., 0.95) and keep the other at 1.0.
+#define MOTOR_LEFT_SCALE  1.0f
+#define MOTOR_RIGHT_SCALE 1.0f  // Adjust this in testing if drifting right
+
 // PID Constants (Exposed for tuning interface if needed)
 extern float Kp_right;
 extern float Ki_right;
@@ -12,9 +24,7 @@ extern float Kp_left;
 extern float Ki_left;
 extern float Kd_left;
 
-extern float Kp_balancer;
-
-// Target position variables (modified by IR wall correction)
+// Target position variables (modified by high-level navigation/Kalman filter)
 extern int32_t target_position_right;
 extern int32_t target_position_left;
 

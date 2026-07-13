@@ -5,6 +5,12 @@
 
 // MPU6050 Control Structure
 typedef struct {
+    int16_t raw_ax;
+    int16_t raw_ay;
+    int16_t raw_az;
+    float ax;           // Acceleration in g's
+    float ay;           // Acceleration in g's
+    
     int16_t raw_gz;
     float gz_vel;
     float yaw_angle;    // Accumulated yaw angle in degrees

@@ -132,30 +132,20 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-	//Motor_Move_Cm(10.0);
 	char msg[128];
 	while (1) {
-		// Print IR readings over UART for verification
-		// Format: raw values | distances | steering error
-		sprintf(msg, "%f \n\r",mpu.yaw_angle);
+		// Drive a single side_cm x side_cm square. Each 90-degree turn is
+		// closed-loop corrected against the MPU yaw estimate (see
+		// Motor_Turn_Degrees_MPU / Motor_Drive_Square in motor_control.c),
+		// so wheel slip on a turn gets caught and corrected before the next
+		// side starts, instead of compounding corner-to-corner.
+		Motor_Drive_Square(24.0);
+
+		// Report heading error at the end of the loop for debugging/tuning.
+		sprintf(msg, "heading: %.2f\n\r", Motor_Get_Heading());
 		UART_Print(msg);
-		HAL_Delay(1000);
-//		Motor_Move_Cm(-24.0);
-//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-//		Motor_Turn_Degrees(90);
-//		HAL_Delay(3000);
-//		Motor_Move_Cm(-24.0);
-//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-//		Motor_Turn_Degrees(90);
-//		HAL_Delay(3000);
-//		Motor_Move_Cm(-24.0);
-//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-//		Motor_Turn_Degrees(90);
-//		HAL_Delay(3000);
-//		Motor_Move_Cm(-24.0);
-//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-//		Motor_Turn_Degrees(90);
-//		HAL_Delay(3000);
+
+		HAL_Delay(5000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

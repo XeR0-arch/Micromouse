@@ -12,7 +12,7 @@
 
 // ========== CONFIGURATION ==========
 #define WHEELBASE_CM 7.8f  
-#define WHEEL_DIAMETER_CM 3.16f
+#define WHEEL_DIAMETER_CM 3.9f
 #define ENCODER_COUNTS_PER_MOTOR_REV 1440//576  // (4 * 144) 1440
 #define GEAR_RATIO 1.0f
 
@@ -221,5 +221,5 @@ void Motor_Control_Update(void) {
 
     // Apply Output
     Motor_SetPWM_Right(apply_deadband(pwm_right));
-    Motor_SetPWM_Left(apply_deadband(pwm_left));
+    Motor_SetPWM_Left(0.925*apply_deadband(pwm_left));
 }

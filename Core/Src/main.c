@@ -48,6 +48,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 	if (htim->Instance == TIM10) {
 		IR_Tick();  // Non-blocking: alternates ambient/active reads at 40Hz
+		MPU6050_Update(0.025);
 	}
 }
 /* USER CODE END PTD */
@@ -121,7 +122,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	Motor_Control_Init();
 	IR_Distance_Init();
-	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 interrupt for 20Hz IR loop
+	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 interrupt for 40Hz loop
+	MPU6050_Init();
+	MPU6050_Calibrate();
 	//char msg[50];
 //  Navigation_Init();
   /* USER CODE END 2 */
@@ -134,24 +137,25 @@ int main(void)
 	while (1) {
 		// Print IR readings over UART for verification
 		// Format: raw values | distances | steering error
-//		sprintf(msg, "%lu , %lu\n\r",(int32_t)__HAL_TIM_GET_COUNTER(&htim2),(int32_t)__HAL_TIM_GET_COUNTER(&htim5));
-//		UART_Print(msg);
-		Motor_Move_Cm(-24.0);
-		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-		Motor_Turn_Degrees(90);
-		HAL_Delay(3000);
-		Motor_Move_Cm(-24.0);
-		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-		Motor_Turn_Degrees(90);
-		HAL_Delay(3000);
-		Motor_Move_Cm(-24.0);
-		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-		Motor_Turn_Degrees(90);
-		HAL_Delay(3000);
-		Motor_Move_Cm(-24.0);
-		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
-		Motor_Turn_Degrees(90);
-		HAL_Delay(3000);
+		sprintf(msg, "%f \n\r",mpu.yaw_angle);
+		UART_Print(msg);
+		HAL_Delay(1000);
+//		Motor_Move_Cm(-24.0);
+//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+//		Motor_Turn_Degrees(90);
+//		HAL_Delay(3000);
+//		Motor_Move_Cm(-24.0);
+//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+//		Motor_Turn_Degrees(90);
+//		HAL_Delay(3000);
+//		Motor_Move_Cm(-24.0);
+//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+//		Motor_Turn_Degrees(90);
+//		HAL_Delay(3000);
+//		Motor_Move_Cm(-24.0);
+//		HAL_Delay(3000);  // Print at ~5Hz to keep terminal readable
+//		Motor_Turn_Degrees(90);
+//		HAL_Delay(3000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

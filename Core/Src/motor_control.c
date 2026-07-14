@@ -256,12 +256,12 @@ void Motor_Control_Update(void) {
     int32_t correction = sync_correction + heading_correction;
 
     // Apply Symmetrically
-    pwm_right -= correction;
-    pwm_left  += correction;
+//    pwm_right -= correction;
+//    pwm_left  += correction;
 
     // Apply Output
     Motor_SetPWM_Right(apply_deadband(pwm_right));
-    Motor_SetPWM_Left(0.925*apply_deadband(pwm_left));
+    Motor_SetPWM_Left(apply_deadband(pwm_left));
 }
 
 /**
@@ -318,10 +318,9 @@ void Motor_Drive_Square(float side_cm) {
         while (!Motor_IsMovementComplete()) {
             HAL_Delay(5);
         }
-        HAL_Delay(100);
+        HAL_Delay(1000);
 
         Motor_Turn_Degrees_MPU(90.0f);
-        HAL_Delay(100);
-        Motor_Move_Cm(side_cm);
+        HAL_Delay(1000);
     }
 }

@@ -50,4 +50,13 @@ uint8_t Motor_IsTurning(void);
 // The Core PID Loop: Must be called inside the TIM4 1kHz Interrupt
 void Motor_Control_Update(void);
 
+// Turning using Gyro for correction
+void Motor_Turn_Degrees_MPU(float angle_deg);
+
+//Get current angle
+float Motor_Get_Heading(void);
+
+//Drive in squares for calibiration
+void Motor_Drive_Square(float side_cm);
+
 #endif /* __MOTOR_CONTROL_H */

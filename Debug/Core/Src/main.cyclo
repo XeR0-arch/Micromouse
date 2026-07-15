@@ -1,8 +1,4 @@
-../Core/Src/main.c:46:9:Gyro_ReadReg	1
-../Core/Src/main.c:53:6:Gyro_WriteReg	1
-../Core/Src/main.c:62:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/main.c:100:13:Motion_Delay	2
-../Core/Src/main.c:111:13:Wait_Motion_Complete	3
-../Core/Src/main.c:132:5:main	2
-../Core/Src/main.c:217:6:SystemClock_Config	3
-../Core/Src/main.c:257:6:Error_Handler	1
+../Core/Src/main.c:45:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/main.c:87:5:main	1
+../Core/Src/main.c:160:6:SystemClock_Config	3
+../Core/Src/main.c:209:6:Error_Handler	1

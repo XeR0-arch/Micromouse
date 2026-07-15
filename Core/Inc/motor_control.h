@@ -1,62 +1,39 @@
 #ifndef __MOTOR_CONTROL_H
 #define __MOTOR_CONTROL_H
-
 #include "main.h"
-
-// PID Constants (Exposed for tuning interface if needed)
+// PID constants (exposed for live tuning if needed)
 extern float Kp_right;
 extern float Ki_right;
 extern float Kd_right;
-
 extern float Kp_left;
 extern float Ki_left;
 extern float Kd_left;
-
 extern float Kp_balancer;
-
-// Target position variables (modified by IR wall correction)
+extern float Kp_heading;
+// Target position variables (can be nudged by IR wall correction)
 extern int32_t target_position_right;
 extern int32_t target_position_left;
-
-// Initialize Encoders and PWMs
+// Initialize encoders + PWMs + PID timer
 void Motor_Control_Init(void);
-
-// Immediately stop the motors
+// Immediately stop motors and clear motion state
 void Motor_Control_Stop(void);
-
-// Set motor PWM directly (for manual modes)
+// Direct PWM (manual / alignment modes)
 void Motor_SetPWM_Right(int32_t pwm);
 void Motor_SetPWM_Left(int32_t pwm);
-
-// Movement commands (non-blocking setup)
-// Move a distance in cm
+// Non-blocking motion setup (PID runs in TIM4 ISR)
 void Motor_Move_Cm(float distance_cm);
-
-// Move straight a distance in cm while maintaining a target yaw heading using gyro
-void Motor_Move_Cm_Gyro(float distance_cm, float target_yaw);
-
-// Turn to an absolute heading in degrees using gyro feedback
-void Motor_Turn_To_Heading(float target_heading);
-
-// Turn a specific angle in degrees (legacy encoder-based)
 void Motor_Turn_Degrees(float angle);
-
-// Returns 1 if the current move/turn is complete, 0 otherwise
+// Gyro-aware helpers
+void Motor_Move_Cm_Gyro(float distance_cm, float target_yaw);
+void Motor_Turn_To_Heading(float target_heading); // blocking
+void Motor_Turn_Degrees_MPU(float angle_deg);     // blocking
+// Status
 uint8_t Motor_IsMovementComplete(void);
-
-// Returns 1 if the motor state is currently turning using the gyro, 0 otherwise
 uint8_t Motor_IsTurning(void);
-
-// The Core PID Loop: Must be called inside the TIM4 1kHz Interrupt
+// Core PID loop — call from TIM4 1 kHz interrupt callback
 void Motor_Control_Update(void);
-
-// Turning using Gyro for correction
-void Motor_Turn_Degrees_MPU(float angle_deg);
-
-//Get current angle
+// Heading (sign-corrected to match Motor_Turn_Degrees convention)
 float Motor_Get_Heading(void);
-
-//Drive in squares for calibiration
+// Calibration helper (blocking)
 void Motor_Drive_Square(float side_cm);
-
 #endif /* __MOTOR_CONTROL_H */

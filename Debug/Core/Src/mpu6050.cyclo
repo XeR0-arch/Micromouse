@@ -1,7 +1,8 @@
-../Core/Src/mpu6050.c:39:13:MPU6050_WriteWord	1
-../Core/Src/mpu6050.c:50:6:MPU6050_SetHardwareOffsets	1
-../Core/Src/mpu6050.c:63:9:MPU6050_Init	2
+../Core/Src/mpu6050.c:46:13:MPU6050_WriteWord	1
+../Core/Src/mpu6050.c:55:6:MPU6050_SetHardwareOffsets	1
+../Core/Src/mpu6050.c:66:9:MPU6050_Init	2
 ../Core/Src/mpu6050.c:101:6:MPU6050_Calibrate	2
-../Core/Src/mpu6050.c:120:6:MPU6050_ScheduleUpdate	1
-../Core/Src/mpu6050.c:124:6:MPU6050_Service	6
-../Core/Src/mpu6050.c:151:6:MPU6050_Update	5
+../Core/Src/mpu6050.c:121:6:MPU6050_ScheduleUpdate	1
+../Core/Src/mpu6050.c:126:6:MPU6050_Service	6
+../Core/Src/mpu6050.c:156:6:MPU6050_Update	5
+../Core/Src/mpu6050.c:196:7:MPU6050_ShortestAngleError	3

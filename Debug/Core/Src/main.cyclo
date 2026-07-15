@@ -1,6 +1,6 @@
 ../Core/Src/main.c:44:6:HAL_TIM_PeriodElapsedCallback	3
 ../Core/Src/main.c:82:13:Motion_Delay	2
 ../Core/Src/main.c:93:13:Wait_Motion_Complete	3
-../Core/Src/main.c:114:5:main	3
-../Core/Src/main.c:208:6:SystemClock_Config	3
-../Core/Src/main.c:248:6:Error_Handler	1
+../Core/Src/main.c:114:5:main	1
+../Core/Src/main.c:191:6:SystemClock_Config	3
+../Core/Src/main.c:231:6:Error_Handler	1

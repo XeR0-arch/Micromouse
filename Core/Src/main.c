@@ -176,24 +176,7 @@ int main(void)
 		sprintf(msg, "before turn  h=%.2f  target_step=+90\r\n", h0);
 		UART_Print(msg);
 
-		Motor_Turn_Degrees_MPU(90.0f);
-
-		float h1 = Motor_Get_Heading();
-		float d = h1 - h0;
-		while (d > 180.0f)
-			d -= 360.0f;
-		while (d < -180.0f)
-			d += 360.0f;
-		sprintf(msg, "after  turn  h=%.2f  delta=%.2f\r\n", h1, d);
-		UART_Print(msg);
-
-		Motion_Delay(2000);
-
-		/* Short hop so you can see orientation on the floor.
-		 * Keep the minus if +distance drives backward on your build. */
-		Motor_Move_Cm(-10.0f);
-		Wait_Motion_Complete(5000);
-		Motion_Delay(1500);
+		Motor_Drive_Square(24.0);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

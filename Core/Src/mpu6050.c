@@ -208,3 +208,21 @@ float MPU6050_ShortestAngleError(float target_deg, float current_deg)
     }
     return error;
 }
+
+/* Returns yaw wrapped to (-180, +180] for display/logging.
+ * NEVER use this for integration or turn control. */
+float MPU6050_GetYawWrapped(void)
+{
+    float yaw = fmodf(mpu.yaw_angle, 360.0f);
+    if (yaw > 180.0f)  yaw -= 360.0f;
+    if (yaw <= -180.0f) yaw += 360.0f;
+    return yaw;
+}
+
+/* Alternative: 0–360° wrapping */
+float MPU6050_GetYaw360(void)
+{
+    float yaw = fmodf(mpu.yaw_angle, 360.0f);
+    if (yaw < 0) yaw += 360.0f;
+    return yaw;
+}

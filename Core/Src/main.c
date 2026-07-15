@@ -192,25 +192,27 @@ int main(void)
 	// Wake up MPU6050
 	// Wake up MPU6050
 	// In main(), BEFORE while(1):
+	// === BEFORE while(1) ===
 	if (!MPU6050_Init()) {
-	    UART_Print("MPU6050 INIT FAILED\r\n");
+	    UART_Print("MPU6050 FAIL\r\n");
 	    Error_Handler();
 	}
 
-	// === FIX #3: Ensure MPU6050_Service() runs regularly ===
-	// Option A: If you have TIM10 ISR set up, put this inside the ISR:
-	//     MPU6050_ScheduleUpdate();
-	// Then call MPU6050_Service() from your main loop or a fast task.
+	// Optional: reset yaw to 0 at startup
+	mpu.yaw_angle = 0.0f;
 
-	// Option B (temporary/test): Call directly from main loop
+	// === inside while(1) ===
 	while (1)
 	{
-	    MPU6050_Service();   // Integrates yaw at ~200 Hz if you delay 5ms
+	    MPU6050_Service();   // integrates yaw at ~200 Hz
 
-	    sprintf(msg, "yaw=%.2f  vel=%.2f\n\r", mpu.yaw_angle, mpu.gz_vel);
+	    // For display: use wrapped angle so you don't see ±infinity
+	    float yaw_display = MPU6050_GetYawWrapped();
+
+	    sprintf(msg, "yaw=%7.2f  vel=%6.2f\n\r", yaw_display, mpu.gz_vel);
 	    UART_Print(msg);
 
-	    HAL_Delay(5);  // 200 Hz loop
+	    HAL_Delay(5);  // 200 Hz loop matches MPU sample rate
 	}
 }
 

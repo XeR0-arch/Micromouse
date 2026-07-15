@@ -20,4 +20,7 @@ void MPU6050_ScheduleUpdate(void);
 void MPU6050_Service(void);
 
 float MPU6050_ShortestAngleError(float target_deg, float current_deg);
+
+float MPU6050_GetYawWrapped(void);
+float MPU6050_GetYaw360(void);
 #endif // MPU6050_H

@@ -11,7 +11,7 @@ typedef struct {
     uint8_t is_calibrated;  // Flag indicating ready state
 } MPU6050_t;
 
-extern MPU6050_t mpu;
+extern volatile MPU6050_t mpu;
 
 /* Function Prototypes */
 uint8_t MPU6050_Init(void);
@@ -19,5 +19,10 @@ void MPU6050_SetHardwareOffsets(int16_t ax_off, int16_t ay_off, int16_t az_off,
                                 int16_t gx_off, int16_t gy_off, int16_t gz_off);
 void MPU6050_Calibrate(void);
 void MPU6050_Update(float dt);
+
+/* Schedule and service foreground gyro reads. The scheduler is ISR-safe; the
+ * actual I2C transaction is deliberately performed outside the ISR. */
+void MPU6050_ScheduleUpdate(void);
+void MPU6050_Service(void);
 
 #endif // MPU6050_H

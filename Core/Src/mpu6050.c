@@ -28,7 +28,10 @@
 #define CAL_GY_OFFSET  (-16)
 #define CAL_GZ_OFFSET  (-18)
 
-MPU6050_t mpu = {0};
+volatile MPU6050_t mpu = {0};
+
+/* Set by TIM10 and consumed by MPU6050_Service() in the foreground. */
+static volatile uint8_t mpu_update_pending = 0;
 
 /**
   * @brief  Helper to write a 16-bit signed offset to a specific register pair (High + Low byte).
@@ -114,6 +117,37 @@ void MPU6050_Calibrate(void) {
 /**
   * @brief  Update Yaw Angle. Call this in your timer/control loop at interval dt.
   */
+void MPU6050_ScheduleUpdate(void) {
+    mpu_update_pending = 1;
+}
+
+void MPU6050_Service(void) {
+    static uint32_t last_update_tick = 0;
+    uint8_t update_pending;
+
+    /* Claim the flag briefly. Do not hold interrupts disabled during I2C. */
+    __disable_irq();
+    update_pending = mpu_update_pending;
+    mpu_update_pending = 0;
+    __enable_irq();
+
+    if (!update_pending || !mpu.is_calibrated) {
+        return;
+    }
+
+    uint32_t now = HAL_GetTick();
+    float dt = 0.025f;
+    if (last_update_tick != 0U) {
+        uint32_t elapsed = now - last_update_tick;
+        if (elapsed > 0U && elapsed <= 100U) {
+            dt = (float)elapsed / 1000.0f;
+        }
+    }
+    last_update_tick = now;
+
+    MPU6050_Update(dt);
+}
+
 void MPU6050_Update(float dt) {
     if (!mpu.is_calibrated) return;
 

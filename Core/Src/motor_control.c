@@ -103,6 +103,17 @@ static void reset_pid(void) {
     prev_error_left = 0;
 }
 
+/* Blocking motion helpers must continue servicing the foreground MPU
+ * scheduler. The actual I2C read is never performed from an ISR. */
+static void Motor_ServiceDelay(uint32_t ms) {
+    uint32_t start = HAL_GetTick();
+
+    while ((HAL_GetTick() - start) < ms) {
+        MPU6050_Service();
+        HAL_Delay(1);
+    }
+}
+
 void Motor_Control_Init(void) {
     // Start Encoders
     HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
@@ -286,10 +297,10 @@ void Motor_Turn_Degrees_MPU(float angle_deg) {
         Motor_Turn_Degrees(remaining);
 
         while (!Motor_IsMovementComplete()) {
-            HAL_Delay(5);
+            Motor_ServiceDelay(5);
         }
 
-        HAL_Delay(HEADING_SETTLE_MS);  // let the robot/gyro settle before reading yaw
+        Motor_ServiceDelay(HEADING_SETTLE_MS);  // let the robot/gyro settle before reading yaw
 
         float heading_error = target_heading_deg - Motor_Get_Heading();
 
@@ -312,11 +323,11 @@ void Motor_Drive_Square(float side_cm) {
     for (int side = 0; side < 4; side++) {
         Motor_Move_Cm(side_cm);
         while (!Motor_IsMovementComplete()) {
-            HAL_Delay(5);
+            Motor_ServiceDelay(5);
         }
-        HAL_Delay(1000);
+        Motor_ServiceDelay(1000);
 
         Motor_Turn_Degrees_MPU(90.0f);
-        HAL_Delay(1000);
+        Motor_ServiceDelay(1000);
     }
 }

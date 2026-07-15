@@ -46,9 +46,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM4) {
 		Motor_Control_Update();
 	}
-	if (htim->Instance == TIM10) {
-		IR_Tick();  // Non-blocking: alternates ambient/active reads at 40Hz
-		MPU6050_Update(0.025);
+	else if (htim->Instance == TIM10) {
+		/* TIM10 is only a scheduler during encoder + gyro validation. The
+		 * blocking I2C transaction is serviced from the foreground. */
+		MPU6050_ScheduleUpdate();
 	}
 }
 /* USER CODE END PTD */
@@ -77,6 +78,18 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* Keep the foreground alive while motion is in progress so scheduled MPU
+ * samples are actually serviced outside interrupt context. */
+static void Motion_Delay(uint32_t ms)
+{
+	uint32_t start = HAL_GetTick();
+
+	while ((HAL_GetTick() - start) < ms) {
+		MPU6050_Service();
+		HAL_Delay(1);
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -122,9 +135,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	Motor_Control_Init();
 	IR_Distance_Init();
-	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 interrupt for 40Hz loop
+
+	/* Complete all MPU I2C initialization and calibration before enabling
+	 * the TIM10 scheduler. TIM10 no longer performs I2C itself, but keeping
+	 * startup transactions serialized makes the ownership explicit. */
 	MPU6050_Init();
 	MPU6050_Calibrate();
+	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 scheduler at 40Hz
 	//char msg[50];
 //  Navigation_Init();
   /* USER CODE END 2 */
@@ -145,72 +162,72 @@ int main(void)
 		sprintf(msg, "heading: %.2f\n\r", Motor_Get_Heading());
 		UART_Print(msg);
 
-		HAL_Delay(5000);
+		Motion_Delay(5000);
 
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Move_Cm(-24.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
 		Motor_Turn_Degrees_MPU(-90.0);
-		HAL_Delay(1000);
+		Motion_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

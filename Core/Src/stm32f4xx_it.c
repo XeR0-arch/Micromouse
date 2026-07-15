@@ -228,7 +228,7 @@ void TIM4_IRQHandler(void)
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);
   /* USER CODE BEGIN TIM4_IRQn 1 */
-  Motor_Control_Update();
+  /* Motor_Control_Update() is called by HAL_TIM_PeriodElapsedCallback(). */
   /* USER CODE END TIM4_IRQn 1 */
 }
 

@@ -14,9 +14,9 @@
 ../Core/Src/motor_control.c:195:6:Motor_Turn_Degrees	1
 ../Core/Src/motor_control.c:211:9:Motor_IsMovementComplete	1
 ../Core/Src/motor_control.c:215:9:Motor_IsTurning	1
-../Core/Src/motor_control.c:220:6:Motor_Control_Update	6
-../Core/Src/motor_control.c:271:7:Motor_Get_Heading	1
-../Core/Src/motor_control.c:285:6:Motor_Turn_Degrees_MPU	10
-../Core/Src/motor_control.c:338:6:Motor_Turn_To_Heading	1
-../Core/Src/motor_control.c:346:6:Motor_Move_Cm_Gyro	1
-../Core/Src/motor_control.c:351:6:Motor_Drive_Square	3
+../Core/Src/motor_control.c:220:6:Motor_Control_Update	9
+../Core/Src/motor_control.c:291:7:Motor_Get_Heading	1
+../Core/Src/motor_control.c:310:6:Motor_Turn_Degrees_MPU	14
+../Core/Src/motor_control.c:396:6:Motor_Turn_To_Heading	1
+../Core/Src/motor_control.c:404:6:Motor_Move_Cm_Gyro	1
+../Core/Src/motor_control.c:409:6:Motor_Drive_Square	3

@@ -12,9 +12,7 @@
 // ========== CONFIGURATION ==========
 #define WHEELBASE_CM 7.8f
 #define WHEEL_DIAMETER_CM 3.9f
-// 1440 = 4x decode * CPR. Wrong CPR scales ALL distances/turns the same
-// amount. The "90° becomes ~270°" bug is NOT this — it's MPU sign (below).
-#define ENCODER_COUNTS_PER_MOTOR_REV 1440 // was also tried as 576
+#define ENCODER_COUNTS_PER_MOTOR_REV 1440
 #define GEAR_RATIO 1.0f
 #define WHEEL_CIRCUMFERENCE_CM (3.14159f * WHEEL_DIAMETER_CM)
 #define COUNTS_PER_WHEEL_REV (ENCODER_COUNTS_PER_MOTOR_REV / GEAR_RATIO)
@@ -23,24 +21,26 @@
 #define DEADBAND 1600
 #define MAX_PWM 4999
 #define POSITION_TOLERANCE 2
+
 // ========== MPU HEADING LOOP CONFIG ==========
 #define HEADING_TOLERANCE_DEG 3.0f
 #define MAX_TURN_CORRECTIONS 5
 #define HEADING_SETTLE_MS 100
-// If Motor_Turn_Degrees(+90) makes mpu.yaw_angle DECREASE, this must be -1.
-// Wrong sign → residual ~180° → correction adds another 180° → ~270° total.
-#define MPU_YAW_SIGN (-1.0f)
-// Hard cap on any single correction step. Prevents 270° runaway.
-#define MAX_CORRECTION_DEG 120.0f
-// PID Constants
-float Kp_right = 1.5f;
+
+// FIXED: +1 for standard right-hand rule (CCW = positive yaw)
+#define MPU_YAW_SIGN (1.0f)
+
+// FIXED: Kd reduced from 650 → 0.5. Start here. If it feels sluggish, go to 1.0.
+// If it oscillates, go back to 0.0 (P-only).
+float Kp_right = 2.0f;
 float Ki_right = 0.0f;
-float Kd_right = 650.0f;
-float Kp_left = 1.5f;
+float Kd_right = 0.5f;
+float Kp_left = 2.0f;
 float Ki_left = 0.0f;
-float Kd_left = 650.0f;
-float Kp_heading = 0.0f; // straight-line heading hold (PWM/deg) — tune later
+float Kd_left = 0.5f;
+float Kp_heading = 0.0f;
 float Kp_balancer = 0.0f;
+
 // PID state
 int32_t target_position_right = 0;
 static int32_t start_position_right = 0;
@@ -221,20 +221,37 @@ void Motor_Control_Update(void)
 {
     if (movement_complete)
         return;
+
     int32_t current_pos_right = get_encoder_right();
-    int32_t current_pos_left = get_encoder_left();
+    int32_t current_pos_left  = get_encoder_left();
     int32_t current_distance_right = current_pos_right - start_position_right;
+    int32_t current_distance_left  = current_pos_left  - start_position_left;
     int32_t error_right = target_position_right - current_distance_right;
-    int32_t current_distance_left = current_pos_left - start_position_left;
-    int32_t error_left = target_position_left - current_distance_left;
-    if (abs_int(error_left) <= POSITION_TOLERANCE &&
-        abs_int(error_right) <= POSITION_TOLERANCE)
+    int32_t error_left  = target_position_left  - current_distance_left;
+
+    if (abs_int(error_left) <= POSITION_TOLERANCE && abs_int(error_right) <= POSITION_TOLERANCE)
     {
         Motor_SetPWM_Right(0);
         Motor_SetPWM_Left(0);
         movement_complete = 1;
         return;
     }
+
+    /* === DECELERATION RAMP ===
+     * Scale down PID output as we approach target.
+     * Prevents full-speed slam into the end.
+     */
+    const int32_t DECEL_ZONE_COUNTS = 150;  // ~1.3 cm of deceleration
+    float decel_scale = 1.0f;
+
+    int32_t min_err = (abs_int(error_right) < abs_int(error_left)) ?
+                       abs_int(error_right) : abs_int(error_left);
+
+    if (min_err < DECEL_ZONE_COUNTS) {
+        decel_scale = (float)min_err / DECEL_ZONE_COUNTS;
+        if (decel_scale < 0.25f) decel_scale = 0.25f;  // Never go below 25%
+    }
+
     // Right PID
     float P_right = Kp_right * error_right;
     integral_right += error_right;
@@ -242,6 +259,7 @@ void Motor_Control_Update(void)
     int32_t derivative_right = error_right - prev_error_right;
     float D_right = Kd_right * derivative_right;
     prev_error_right = error_right;
+
     // Left PID
     float P_left = Kp_left * error_left;
     integral_left += error_left;
@@ -249,22 +267,24 @@ void Motor_Control_Update(void)
     int32_t derivative_left = error_left - prev_error_left;
     float D_left = Kd_left * derivative_left;
     prev_error_left = error_left;
-    int32_t pwm_right = (int32_t)(P_right + I_right + D_right);
-    int32_t pwm_left = (int32_t)(P_left + I_left + D_left);
-    // Encoder wheel-sync (gains currently 0)
+
+    int32_t pwm_right = (int32_t)((P_right + I_right + D_right) * decel_scale);
+    int32_t pwm_left  = (int32_t)((P_left  + I_left  + D_left)  * decel_scale);
+
+    // Sync & heading hold
     int16_t encoder_difference = (int16_t)(error_right - error_left);
     int32_t sync_correction = (int32_t)(Kp_balancer * encoder_difference);
-    // MPU heading-hold only on straight runs
     int32_t heading_correction = 0;
-    if (!is_turning && Kp_heading != 0.0f)
-    {
-        float heading_error_deg =
-            normalize_angle_deg(target_heading_deg - Motor_Get_Heading());
+
+    if (!is_turning && Kp_heading != 0.0f) {
+        float heading_error_deg = normalize_angle_deg(target_heading_deg - Motor_Get_Heading());
         heading_correction = (int32_t)(Kp_heading * heading_error_deg);
     }
+
     int32_t correction = sync_correction + heading_correction;
     pwm_right -= correction;
-    pwm_left += correction;
+    pwm_left  += correction;
+
     Motor_SetPWM_Right(apply_deadband(pwm_right));
     Motor_SetPWM_Left(apply_deadband(pwm_left));
 }
@@ -282,63 +302,101 @@ float Motor_Get_Heading(void)
  * sign-inversion guard so a wrong MPU_YAW_SIGN cannot produce ~270°.
  * Blocking — call from main, never from an ISR.
  */
+/**
+ * Pure MPU turn — no encoder PID involved.
+ * Uses 3-speed bang-bang with slowdown zones for clean 90° corners.
+ * Blocking — call from main, never ISR.
+ */
 void Motor_Turn_Degrees_MPU(float angle_deg)
 {
-    target_heading_deg = normalize_angle_deg(target_heading_deg + angle_deg);
-    float remaining = angle_deg;
-    float heading_at_start = Motor_Get_Heading();
-    for (int attempt = 0; attempt < MAX_TURN_CORRECTIONS; attempt++)
-    {
-        if (fabsf(remaining) <= HEADING_TOLERANCE_DEG)
-        {
-            break;
+    float target = Motor_Get_Heading() + angle_deg;
+    float error;
+    uint32_t timeout = HAL_GetTick() + 3000;
+
+    /* Tunables — start conservative, raise if too sluggish */
+    const float max_speed    = 1800.0f;   // Hard cap (lower = gentler)
+    const float min_speed    = 600.0f;    // Minimum to break static friction
+    const float creep_speed  = 400.0f;    // Final approach (very slow)
+    const float Kp_turn      = 30.0f;     // PWM per degree of error
+    const float slowdown_deg = 45.0f;     // Start decelerating at 25° left
+
+    do {
+        MPU6050_Service();
+        error = MPU6050_ShortestAngleError(target, Motor_Get_Heading());
+
+        /* === Proportional speed ===
+         * Far from target  → fast
+         * Near target      → slow (automatic deceleration)
+         */
+        float speed = fabsf(error) * Kp_turn;
+
+        /* === Smooth deceleration curve ===
+         * When error < 25°, blend linearly from min_speed down to creep_speed.
+         * This prevents the "slamming brakes" feel.
+         */
+        if (fabsf(error) < slowdown_deg) {
+            float ratio = fabsf(error) / slowdown_deg;   // 0.0 at target, 1.0 at 25°
+            speed = creep_speed + (min_speed - creep_speed) * ratio;
         }
-        float yaw_before = Motor_Get_Heading();
-        Motor_Turn_Degrees(remaining);
-        while (!Motor_IsMovementComplete())
-        {
-            Motor_ServiceDelay(5);
+
+        /* Clamp */
+        if (speed > max_speed) speed = max_speed;
+        if (speed < creep_speed && fabsf(error) > HEADING_TOLERANCE_DEG)
+            speed = creep_speed;
+
+        /* Apply */
+        if (error > 0) {          // CCW / left turn
+            Motor_SetPWM_Right(-(int32_t)speed);
+            Motor_SetPWM_Left( (int32_t)speed);
+        } else {                  // CW / right turn
+            Motor_SetPWM_Right( (int32_t)speed);
+            Motor_SetPWM_Left(-(int32_t)speed);
         }
-        Motor_ServiceDelay(HEADING_SETTLE_MS);
-        float yaw_after = Motor_Get_Heading();
-        float actual_delta = normalize_angle_deg(yaw_after - yaw_before);
-        // Sign-inversion guard (first attempt only)
-        if (attempt == 0 &&
-            fabsf(remaining) > 20.0f &&
-            fabsf(actual_delta) > 20.0f &&
-            (remaining * actual_delta) < 0.0f)
-        {
-            // Gyro moved opposite of command → MPU_YAW_SIGN likely wrong.
-            // Treat physical rotation magnitude with commanded sign so we
-            // don't chase another 180°.
-            float physical_in_command_frame =
-                copysignf(fabsf(actual_delta), remaining);
-            float still_needed =
-                normalize_angle_deg(angle_deg - physical_in_command_frame);
-            target_heading_deg =
-                normalize_angle_deg(heading_at_start + physical_in_command_frame);
-            if (fabsf(still_needed) <= HEADING_TOLERANCE_DEG)
-            {
-                break;
-            }
-            remaining = clampf(still_needed, -MAX_CORRECTION_DEG, MAX_CORRECTION_DEG);
-            continue;
-        }
-        float heading_error =
-            normalize_angle_deg(target_heading_deg - Motor_Get_Heading());
-        if (fabsf(heading_error) <= HEADING_TOLERANCE_DEG)
-        {
-            break;
-        }
-        remaining = clampf(heading_error, -MAX_CORRECTION_DEG, MAX_CORRECTION_DEG);
+
+        HAL_Delay(5);
+
+    } while (fabsf(error) > HEADING_TOLERANCE_DEG && HAL_GetTick() < timeout);
+
+    /* === Gentle stop ===
+     * Cut power and let momentum coast out naturally.
+     * For a top-heavy bot, this prevents the "bending" from hard braking.
+     */
+    Motor_SetPWM_Right(0);
+    Motor_SetPWM_Left(0);
+
+    uint32_t coast_start = HAL_GetTick();
+    while (HAL_GetTick() - coast_start < 100) {
+        MPU6050_Service();
+        HAL_Delay(5);
     }
+
+    /* Optional micro-correction if we drifted during coast */
+    error = MPU6050_ShortestAngleError(target, Motor_Get_Heading());
+    if (fabsf(error) > HEADING_TOLERANCE_DEG) {
+        float fix_speed = (fabsf(error) > 5.0f) ? creep_speed : min_speed;
+        if (error > 0) {
+            Motor_SetPWM_Right(-(int32_t)fix_speed);
+            Motor_SetPWM_Left( (int32_t)fix_speed);
+        } else {
+            Motor_SetPWM_Right( (int32_t)fix_speed);
+            Motor_SetPWM_Left(-(int32_t)fix_speed);
+        }
+        while (fabsf(error) > HEADING_TOLERANCE_DEG && HAL_GetTick() < timeout) {
+            MPU6050_Service();
+            error = MPU6050_ShortestAngleError(target, Motor_Get_Heading());
+            HAL_Delay(10);
+        }
+        Motor_SetPWM_Right(0);
+        Motor_SetPWM_Left(0);
+    }
+
+    target_heading_deg = normalize_angle_deg(target);
     is_turning = 0;
-    Motor_Control_Stop();
 }
 void Motor_Turn_To_Heading(float target_heading)
 {
     float current = Motor_Get_Heading();
-    float delta = normalize_angle_deg(target_heading - current);
+    float delta = MPU6050_ShortestAngleError(target_heading, current);
     target_heading_deg = current;
     Motor_Turn_Degrees_MPU(delta);
     target_heading_deg = normalize_angle_deg(target_heading);

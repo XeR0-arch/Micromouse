@@ -198,21 +198,15 @@ int main(void)
 	    Error_Handler();
 	}
 
-	// Optional: reset yaw to 0 at startup
+	Motor_Control_Init();
+
+	// Reset heading to 0 at start
 	mpu.yaw_angle = 0.0f;
 
-	// === inside while(1) ===
 	while (1)
 	{
-	    MPU6050_Service();   // integrates yaw at ~200 Hz
-
-	    // For display: use wrapped angle so you don't see ±infinity
-	    float yaw_display = MPU6050_GetYawWrapped();
-
-	    sprintf(msg, "yaw=%7.2f  vel=%6.2f\n\r", yaw_display, mpu.gz_vel);
-	    UART_Print(msg);
-
-	    HAL_Delay(5);  // 200 Hz loop matches MPU sample rate
+	    Motor_Drive_Square(-40.0f);  // 20cm square
+	    HAL_Delay(1000);            // Pause between squares
 	}
 }
 

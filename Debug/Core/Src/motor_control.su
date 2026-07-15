@@ -9,8 +9,8 @@
 ../Core/Src/motor_control.c:158:6:Motor_Control_Stop	8	static
 ../Core/Src/motor_control.c:168:6:Motor_Move_Cm	24	static
 ../Core/Src/motor_control.c:179:6:Motor_Turn_Degrees	24	static
-../Core/Src/motor_control.c:199:9:Motor_IsMovementComplete	4	static
-../Core/Src/motor_control.c:204:6:Motor_Control_Update	96	static
-../Core/Src/motor_control.c:271:7:Motor_Get_Heading	4	static
-../Core/Src/motor_control.c:284:6:Motor_Turn_Degrees_MPU	40	static
-../Core/Src/motor_control.c:315:6:Motor_Drive_Square	24	static
+../Core/Src/motor_control.c:195:9:Motor_IsMovementComplete	4	static
+../Core/Src/motor_control.c:200:6:Motor_Control_Update	96	static
+../Core/Src/motor_control.c:267:7:Motor_Get_Heading	4	static
+../Core/Src/motor_control.c:280:6:Motor_Turn_Degrees_MPU	40	static
+../Core/Src/motor_control.c:311:6:Motor_Drive_Square	24	static

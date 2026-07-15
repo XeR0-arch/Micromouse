@@ -142,10 +142,10 @@ int main(void)
 //		Motor_Drive_Square(-24.0);
 
 		// Report heading error at the end of the loop for debugging/tuning.
-		sprintf(msg, "heading: %.2f\n\r", Motor_Get_Heading());
-		UART_Print(msg);
+//		sprintf(msg, "%d %d %d %d\n\r", ir_data.value[0],ir_data.value[1], ir_data.value[2], ir_data.value[3]);
+//		UART_Print(msg);
 
-		HAL_Delay(5000);
+		HAL_Delay(1000);
 
 		Motor_Move_Cm(-24.0);
 		HAL_Delay(1000);

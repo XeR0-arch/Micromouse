@@ -90,10 +90,10 @@ uint8_t MPU6050_Init(void)
     MPU6050_SetHardwareOffsets(CAL_AX_OFFSET, CAL_AY_OFFSET, CAL_AZ_OFFSET,
                                CAL_GX_OFFSET, CAL_GY_OFFSET, CAL_GZ_OFFSET);
 
-    mpu.cal_gz = 0;
-    mpu.yaw_angle = 0.0f;
-    mpu.is_calibrated = 1;
-    gz_vel_filtered = 0.0f;
+    /* === FIX #1: Actually calibrate zero-rate offset instead of faking it ===
+     * Robot MUST be perfectly still on the ground during this (~500 ms).
+     */
+    MPU6050_Calibrate();
 
     return 1;
 }
@@ -139,7 +139,9 @@ void MPU6050_Service(void)
     }
 
     uint32_t now = HAL_GetTick();
-    float dt = 0.025f;
+
+    /* === FIX #2: Default dt matches 200 Hz (5 ms), not 40 Hz (25 ms) === */
+    float dt = 0.005f;
     if (last_update_tick != 0U)
     {
         uint32_t elapsed = now - last_update_tick;

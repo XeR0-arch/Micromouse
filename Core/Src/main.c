@@ -37,6 +37,24 @@
 #include "uart.h"
 #include "navigation.h"
 #include "floodfill.h"
+
+// === MPU6050 I2C HELPERS ===
+extern I2C_HandleTypeDef hi2c1;   // or hi2c2, hi2c3 — use whatever CubeMX generated
+
+#define MPU6050_ADDR    (0x68 << 1)   // 0xD0 for I2C write, 0xD1 for read
+
+uint8_t Gyro_ReadReg(uint8_t reg)
+{
+    uint8_t val = 0;
+    HAL_I2C_Mem_Read(&hi2c1, MPU6050_ADDR, reg, 1, &val, 1, 100);
+    return val;
+}
+
+void Gyro_WriteReg(uint8_t reg, uint8_t data)
+{
+    HAL_I2C_Mem_Write(&hi2c1, MPU6050_ADDR, reg, 1, &data, 1, 100);
+}
+// ===========================
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -170,18 +188,30 @@ int main(void)
 	 * If bare encoder turn is already wrong size: retune WHEELBASE_CM /
 	 *   ENCODER_COUNTS_PER_MOTOR_REV
 	 */
+	// Wake up MPU6050
+	// Wake up MPU6050
+	// Wake up MPU6050
+	// In main(), BEFORE while(1):
+	if (!MPU6050_Init()) {
+	    UART_Print("MPU6050 INIT FAILED\r\n");
+	    Error_Handler();
+	}
+
+	// === FIX #3: Ensure MPU6050_Service() runs regularly ===
+	// Option A: If you have TIM10 ISR set up, put this inside the ISR:
+	//     MPU6050_ScheduleUpdate();
+	// Then call MPU6050_Service() from your main loop or a fast task.
+
+	// Option B (temporary/test): Call directly from main loop
 	while (1)
 	{
-		float h0 = Motor_Get_Heading();
-		sprintf(msg, "before turn  h=%.2f  target_step=+90\r\n", h0);
-		UART_Print(msg);
+	    MPU6050_Service();   // Integrates yaw at ~200 Hz if you delay 5ms
 
-		Motor_Drive_Square(24.0);
-		/* USER CODE END WHILE */
+	    sprintf(msg, "yaw=%.2f  vel=%.2f\n\r", mpu.yaw_angle, mpu.gz_vel);
+	    UART_Print(msg);
 
-		/* USER CODE BEGIN 3 */
+	    HAL_Delay(5);  // 200 Hz loop
 	}
-	/* USER CODE END 3 */
 }
 
 /**

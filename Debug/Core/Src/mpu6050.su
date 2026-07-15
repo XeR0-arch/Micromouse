@@ -4,5 +4,5 @@
 ../Core/Src/mpu6050.c:101:6:MPU6050_Calibrate	48	static
 ../Core/Src/mpu6050.c:121:6:MPU6050_ScheduleUpdate	4	static
 ../Core/Src/mpu6050.c:126:6:MPU6050_Service	24	static,ignoring_inline_asm
-../Core/Src/mpu6050.c:156:6:MPU6050_Update	48	static
-../Core/Src/mpu6050.c:196:7:MPU6050_ShortestAngleError	24	static
+../Core/Src/mpu6050.c:158:6:MPU6050_Update	48	static
+../Core/Src/mpu6050.c:198:7:MPU6050_ShortestAngleError	24	static

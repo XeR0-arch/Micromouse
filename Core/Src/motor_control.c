@@ -185,14 +185,10 @@ void Motor_Turn_Degrees(float angle) {
     start_position_right = get_encoder_right();
     start_position_left = get_encoder_left();
 
-    if (angle < 0) {
-        target_position_left = -target_counts;
-        target_position_right = target_counts;
-    } else {
-        target_position_right = -target_counts;
-        target_position_left = target_counts;
-    }
-    is_turning = 1;
+	target_position_right = -target_counts;
+	target_position_left = target_counts;
+
+	is_turning = 1;
     movement_complete = 0;
 }
 

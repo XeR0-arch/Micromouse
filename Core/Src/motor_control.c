@@ -82,6 +82,12 @@ static int32_t abs_int(int32_t num) {
     return (num < 0) ? -num : num;
 }
 
+static float normalize_angle_deg(float angle) {
+    while (angle > 180.0f)  angle -= 360.0f;
+    while (angle < -180.0f) angle += 360.0f;
+    return angle;
+}
+
 static int32_t apply_deadband(int32_t pwm) {
     if (pwm > 0 && pwm < DEADBAND) return DEADBAND;
     if (pwm < 0 && pwm > -DEADBAND) return -DEADBAND;
@@ -256,7 +262,7 @@ void Motor_Control_Update(void) {
     // turns are corrected separately/iteratively in Motor_Turn_Degrees_MPU().
     int32_t heading_correction = 0;
     if (!is_turning) {
-        float heading_error_deg = target_heading_deg - (MPU_YAW_SIGN * mpu.yaw_angle);
+    	float heading_error_deg = normalize_angle_deg(target_heading_deg - (MPU_YAW_SIGN * mpu.yaw_angle));
         heading_correction = (int32_t)(Kp_heading * heading_error_deg);
     }
 
@@ -302,7 +308,7 @@ void Motor_Turn_Degrees_MPU(float angle_deg) {
 
         Motor_ServiceDelay(HEADING_SETTLE_MS);  // let the robot/gyro settle before reading yaw
 
-        float heading_error = target_heading_deg - Motor_Get_Heading();
+        float heading_error = normalize_angle_deg(target_heading_deg - Motor_Get_Heading());
 
         if (fabsf(heading_error) <= HEADING_TOLERANCE_DEG) {
             break;

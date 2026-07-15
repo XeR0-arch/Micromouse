@@ -1,5 +1,7 @@
-../Core/Src/mpu6050.c:36:13:MPU6050_WriteWord	1
-../Core/Src/mpu6050.c:47:6:MPU6050_SetHardwareOffsets	1
-../Core/Src/mpu6050.c:60:9:MPU6050_Init	2
-../Core/Src/mpu6050.c:98:6:MPU6050_Calibrate	2
-../Core/Src/mpu6050.c:117:6:MPU6050_Update	5
+../Core/Src/mpu6050.c:39:13:MPU6050_WriteWord	1
+../Core/Src/mpu6050.c:50:6:MPU6050_SetHardwareOffsets	1
+../Core/Src/mpu6050.c:63:9:MPU6050_Init	2
+../Core/Src/mpu6050.c:101:6:MPU6050_Calibrate	2
+../Core/Src/mpu6050.c:120:6:MPU6050_ScheduleUpdate	1
+../Core/Src/mpu6050.c:124:6:MPU6050_Service	6
+../Core/Src/mpu6050.c:151:6:MPU6050_Update	5

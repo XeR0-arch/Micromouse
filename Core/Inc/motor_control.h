@@ -14,6 +14,10 @@ extern float Kd_left;
 
 extern float Kp_balancer;
 
+// Target position variables (modified by IR wall correction)
+extern int32_t target_position_right;
+extern int32_t target_position_left;
+
 // Initialize Encoders and PWMs
 void Motor_Control_Init(void);
 
@@ -28,13 +32,31 @@ void Motor_SetPWM_Left(int32_t pwm);
 // Move a distance in cm
 void Motor_Move_Cm(float distance_cm);
 
-// Turn a specific angle in degrees
+// Move straight a distance in cm while maintaining a target yaw heading using gyro
+void Motor_Move_Cm_Gyro(float distance_cm, float target_yaw);
+
+// Turn to an absolute heading in degrees using gyro feedback
+void Motor_Turn_To_Heading(float target_heading);
+
+// Turn a specific angle in degrees (legacy encoder-based)
 void Motor_Turn_Degrees(float angle);
 
 // Returns 1 if the current move/turn is complete, 0 otherwise
 uint8_t Motor_IsMovementComplete(void);
 
+// Returns 1 if the motor state is currently turning using the gyro, 0 otherwise
+uint8_t Motor_IsTurning(void);
+
 // The Core PID Loop: Must be called inside the TIM4 1kHz Interrupt
 void Motor_Control_Update(void);
+
+// Turning using Gyro for correction
+void Motor_Turn_Degrees_MPU(float angle_deg);
+
+//Get current angle
+float Motor_Get_Heading(void);
+
+//Drive in squares for calibiration
+void Motor_Drive_Square(float side_cm);
 
 #endif /* __MOTOR_CONTROL_H */

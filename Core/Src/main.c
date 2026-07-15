@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -35,12 +35,23 @@
 #include "mpu6050.h"
 #include "status.h"
 #include "uart.h"
+#include "navigation.h"
+#include "floodfill.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM4) {
+		Motor_Control_Update();
+	}
+	else if (htim->Instance == TIM10) {
+		/* TIM10 is only a scheduler during encoder + gyro validation. The
+		 * blocking I2C transaction is serviced from the foreground. */
+		MPU6050_ScheduleUpdate();
+	}
+}
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -67,6 +78,18 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* Keep the foreground alive while motion is in progress so scheduled MPU
+ * samples are actually serviced outside interrupt context. */
+static void Motion_Delay(uint32_t ms)
+{
+	uint32_t start = HAL_GetTick();
+
+	while ((HAL_GetTick() - start) < ms) {
+		MPU6050_Service();
+		HAL_Delay(1);
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -107,18 +130,108 @@ int main(void)
   MX_TIM5_Init();
   MX_USART1_UART_Init();
   MX_TIM4_Init();
+  MX_TIM1_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
+	Motor_Control_Init();
+	IR_Distance_Init();
 
+	/* Complete all MPU I2C initialization and calibration before enabling
+	 * the TIM10 scheduler. TIM10 no longer performs I2C itself, but keeping
+	 * startup transactions serialized makes the ownership explicit. */
+	MPU6050_Init();
+	MPU6050_Calibrate();
+	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 scheduler at 40Hz
+	//char msg[50];
+//  Navigation_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+
+	char msg[128];
+	while (1) {
+		// Drive a single side_cm x side_cm square. Each 90-degree turn is
+		// closed-loop corrected against the MPU yaw estimate (see
+		// Motor_Turn_Degrees_MPU / Motor_Drive_Square in motor_control.c),
+		// so wheel slip on a turn gets caught and corrected before the next
+		// side starts, instead of compounding corner-to-corner.
+//		Motor_Drive_Square(-24.0);
+
+		// Report heading error at the end of the loop for debugging/tuning.
+		sprintf(msg, "heading: %.2f\n\r", Motor_Get_Heading());
+		UART_Print(msg);
+
+		Motion_Delay(5000);
+
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(90.0);
+		Motion_Delay(1000);
+		Motor_Move_Cm(-24.0);
+		Motion_Delay(1000);
+		Motor_Turn_Degrees_MPU(-90.0);
+		Motion_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -178,11 +291,10 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1) {
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT

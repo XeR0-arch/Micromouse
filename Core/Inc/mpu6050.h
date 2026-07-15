@@ -1,28 +1,28 @@
-#ifndef __MPU6050_H
-#define __MPU6050_H
+#ifndef MPU6050_H
+#define MPU6050_H
 
-#include "main.h"
+#include "stm32f4xx_hal.h"  // Adjust to stm32f1xx_hal.h if using F1 series
 
-// MPU6050 Control Structure
 typedef struct {
     int16_t raw_gz;
-    float gz_vel;
-    float yaw_angle;    // Accumulated yaw angle in degrees
-    int16_t cal_gz;     // Calibration offset
-    uint8_t is_calibrated;
+    int16_t cal_gz;         // Fine software trim (usually 0 after hardware offsets)
+    float gz_vel;           // Angular velocity in deg/s
+    float yaw_angle;        // Integrated yaw angle in degrees
+    uint8_t is_calibrated;  // Flag indicating ready state
 } MPU6050_t;
 
-// Externally accessible struct
-extern MPU6050_t mpu;
+extern volatile MPU6050_t mpu;
 
-// Initialization and Configuration
+/* Function Prototypes */
 uint8_t MPU6050_Init(void);
-
-// Calculate calibration offset (Blocks for ~1-2 seconds)
+void MPU6050_SetHardwareOffsets(int16_t ax_off, int16_t ay_off, int16_t az_off,
+                                int16_t gx_off, int16_t gy_off, int16_t gz_off);
 void MPU6050_Calibrate(void);
-
-// Read raw data and update yaw angle. 
-// Should be called continuously at a fixed dt (e.g. 1ms TIM4 interrupt)
 void MPU6050_Update(float dt);
 
-#endif /* __MPU6050_H */
+/* Schedule and service foreground gyro reads. The scheduler is ISR-safe; the
+ * actual I2C transaction is deliberately performed outside the ISR. */
+void MPU6050_ScheduleUpdate(void);
+void MPU6050_Service(void);
+
+#endif // MPU6050_H

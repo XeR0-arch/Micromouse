@@ -204,8 +204,8 @@ int main(void)
                   double dist_ls = Sensor_GetLeftSide(SENSOR_MM);
                   double dist_rs = Sensor_GetRightSide(SENSOR_MM);
 
-                  printf("Dist(mm) -> RS: %5.1f | RF: %5.1f | LF: %5.1f | LS: %5.1f \r\n", 
-                         dist_rs, dist_rf, dist_lf, dist_ls);
+                  // printf("Dist(mm) -> RS: %5.1f | RF: %5.1f | LF: %5.1f | LS: %5.1f \r\n", 
+                  //        dist_rs, dist_rf, dist_lf, dist_ls);
                   last_print = HAL_GetTick();
               }
           }
@@ -226,39 +226,6 @@ int main(void)
 
       /* --- LED heartbeat --- */
       LED_Heartbeat();
-
-      /* --- Button handling --- */
-      Button_Poll();
-
-      /* --- Move controller test: auto-trigger 1-cell forward after 3 sec --- */
-      static bool move_triggered = false;
-      static uint32_t last_ctrl_print = 0;
-
-      if (!move_triggered && HAL_GetTick() > 3000 && mouse.state == MOUSE_IDLE)
-      {
-          printf("\r\n--- TRIGGERING 1-CELL FORWARD MOVE ---\r\n");
-          Mouse_MoveCellForward(&mouse, 1);
-          move_triggered = true;
-      }
-
-      /* Debug print during move controller */
-      if (mouse.state == MOUSE_MOVE_CONTROLLER)
-      {
-          if (HAL_GetTick() - last_ctrl_print > 50)
-          {
-              printf("CTRL -> dist: %6.1f | fwd: %5.1f | ang: %5.1f | dir: %5.1f | posY: %6.1f\r\n",
-                     mouse.distance_to_travel, mouse.forward,
-                     mouse.angle_to_achieve, mouse.direction,
-                     mouse.actual_position_y);
-              last_ctrl_print = HAL_GetTick();
-          }
-      }
-      else if (mouse.state == MOUSE_STOP && move_triggered)
-      {
-          printf("\r\n--- MOVE COMPLETE. Final posY: %.1f mm ---\r\n", mouse.actual_position_y);
-          move_triggered = false; /* Allow another trigger if you reset */
-          mouse.state = MOUSE_IDLE;
-      }
 
     /* USER CODE END WHILE */
 

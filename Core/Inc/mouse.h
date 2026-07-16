@@ -37,7 +37,7 @@ typedef enum {
 } MouseState_t;
 
 /* MAP_SIZE: number of cells in the map array */
-#define MAP_SIZE 18
+#define MAP_SIZE 16
 
 typedef struct Mouse_tag {
 

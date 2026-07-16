@@ -17,7 +17,8 @@ Mouse_t mouse;
 
 /* PD gains for move controller */
 static float Fkp = 2.5f, Fkd = 0.00f;   /* Forward  */
-static float Rkp = 0.08f, Rkd = 0.01f;   /* Rotation */
+static float Rkp_turn = 2.5f, Rkd_turn = 0.00f; /* In-place Rotation */
+static float Rkp_wall = 0.08f, Rkd_wall = 0.00f; /* Wall-following */
 
 /* Controller time step — matches PID_TIME_STEP */
 #define CTRL_TIME_STEP  0.001f
@@ -66,11 +67,14 @@ void Mouse_ControllerDirection(Mouse_t *m)
 {
     float out;
     float prev_ang = m->angle_to_achieve;
+    float current_Rkp = 0.0f;
+    float current_Rkd = 0.0f;
 
     if (m->forward_control)
     {
         /* Driving forward — wall following */
-        Rkp = 0.08f;
+        current_Rkp = Rkp_wall;
+        current_Rkd = Rkd_wall;
 
         if (m->left_side_sensor_mm < 160.0)
         {
@@ -84,18 +88,18 @@ void Mouse_ControllerDirection(Mouse_t *m)
         }
         else
         {
-            /* No walls — follow heading to target */
-            m->angle_to_achieve = fmodf(
-                (atan2f((m->new_position_x - m->actual_position_x),
+            /* No walls */
+            m->angle_to_achieve = (atan2f((m->new_position_x - m->actual_position_x),
                         (m->new_position_y - m->actual_position_y)) * RAD_TO_DEG)
-                - m->actual_angle, 360.0f);
+                - m->actual_angle;
         }
     }
     else
     {
         /* Rotating in place */
         m->angle_to_achieve = m->new_angle - m->actual_angle;
-        Rkp = 0.75f;
+        current_Rkp = Rkp_turn;
+        current_Rkd = Rkd_turn;
     }
 
     /* Wrap to [-180, +180] */
@@ -105,8 +109,8 @@ void Mouse_ControllerDirection(Mouse_t *m)
         m->angle_to_achieve -= 360.0f;
 
     /* PD control */
-    out = (Rkp * m->angle_to_achieve)
-        + (Rkd * (m->angle_to_achieve - prev_ang) / CTRL_TIME_STEP);
+    out = (current_Rkp * m->angle_to_achieve)
+        + (current_Rkd * (m->angle_to_achieve - prev_ang) / CTRL_TIME_STEP);
 
     /* Clamp */
     if (out > DIRECTION_MAX_SPEED)
@@ -143,6 +147,8 @@ void Mouse_SetPosition(Mouse_t *m, float new_x, float new_y)
     m->rotation_control  = true;
     m->distance_to_travel = 0.0f;
     m->angle_to_achieve  = 0.0f;
+    m->forward           = 0.0f;
+    m->direction         = 0.0f;
 }
 
 void Mouse_SetOrientation(Mouse_t *m, float new_angle)
@@ -151,6 +157,8 @@ void Mouse_SetOrientation(Mouse_t *m, float new_angle)
     m->state            = MOUSE_MOVE_CONTROLLER;
     m->forward_control  = false;
     m->rotation_control = true;
+    m->forward          = 0.0f;
+    m->direction        = 0.0f;
 
     /* Update face direction based on cardinal angle */
     if (new_angle == 0.0f)          m->face_direction = DIR_NORTH;

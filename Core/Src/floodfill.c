@@ -258,7 +258,7 @@ void update_cell(bool array[], MazeCell mz[][16])
 {
     /* array: 0=left, 1=left_front, 2=right_front, 3=right */
     bool wall_left  = array[0];
-    bool wall_front = array[1] || array[2];
+    bool wall_front = array[1] && array[2];
     bool wall_right = array[3];
 
     /* Map sensor readings to absolute walls based on orientation */
@@ -503,11 +503,15 @@ void Floodfill_Init(void)
 void Floodfill_Run(bool backtracking)
 {
     push(0, 0, 12);
+    char buf[100];
+
+    UART_Print("\r\n[DEBUG] Entered Floodfill_Run\r\n");
 
     while (1)
     {
         /* Block until we get a fresh sensor reading */
         while (!flag_sensors) {}
+        
         service_sensors();
 
         /* Convert sensor distances to wall booleans */
@@ -524,10 +528,11 @@ void Floodfill_Run(bool backtracking)
         /* Decide next move */
         uint8_t move_dir = next_move(backtracking, maze);
 
-        printf("(%d,%d) ori=%d walls=%d%d%d%d dir=%d val=%d\r\n",
-               x, y, orientiation,
-               adc[0], adc[1], adc[2], adc[3],
-               move_dir, maze[x][y].value);
+        sprintf(buf, "(%d,%d) ori=%d walls=%d%d%d%d dir=%d val=%d\r\n",
+                x, y, orientiation,
+                adc[0], adc[1], adc[2], adc[3],
+                move_dir, maze[x][y].value);
+        UART_Print(buf);
 
         if (move_dir != 3)
         {
@@ -553,8 +558,11 @@ void Floodfill_Run(bool backtracking)
             PID_Disable(&motorRight);
             Mouse_ControllerDisable(&mouse);
             mouse.state = MOUSE_STOP;
-            printf("Reached goal at (%d,%d)!\r\n", x, y);
+            
+            sprintf(buf, "Reached goal at (%d,%d)!\r\n", x, y);
+            UART_Print(buf);
             return;
         }
     }
 }
+

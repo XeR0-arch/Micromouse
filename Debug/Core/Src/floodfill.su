@@ -20,4 +20,4 @@
 ../Core/Src/floodfill.c:411:13:normalize_direction	24	static
 ../Core/Src/floodfill.c:423:9:next_move	32	static
 ../Core/Src/floodfill.c:467:6:Floodfill_Init	16	static
-../Core/Src/floodfill.c:503:6:Floodfill_Run	96	static
+../Core/Src/floodfill.c:503:6:Floodfill_Run	200	static

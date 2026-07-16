@@ -16,7 +16,7 @@
 Mouse_t mouse;
 
 /* PD gains for move controller */
-static float Fkp = 0.75f, Fkd = 0.07f;   /* Forward  */
+static float Fkp = 2.5f, Fkd = 0.00f;   /* Forward  */
 static float Rkp = 0.08f, Rkd = 0.01f;   /* Rotation */
 
 /* Controller time step — matches PID_TIME_STEP */
@@ -162,7 +162,7 @@ void Mouse_SetOrientation(Mouse_t *m, float new_angle)
 
 void Mouse_MoveCellForward(Mouse_t *m, uint8_t num_cells)
 {
-    float cell_size = 240.0f; /* mm — cell internal dimension (without walls) */
+    float cell_size = 265.0f; /* mm — cell internal dimension (without walls) */
 
     if (m->face_direction == DIR_NORTH)
     {

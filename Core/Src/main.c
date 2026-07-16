@@ -175,7 +175,7 @@ int main(void)
   Map_Init(&mouse);
 
   mouse.face_direction = DIR_NORTH;
-  mouse.state = MOUSE_PID;
+  mouse.state = MOUSE_IDLE;
 
   /* Initialize MPU6050 (left untouched, not integrated into control loop) */
   MPU6050_Init();
@@ -230,27 +230,34 @@ int main(void)
       /* --- Button handling --- */
       Button_Poll();
 
-      /* Button actions — skip during PID tuning (vibration can trigger false presses) */
-      if (mouse.state != MOUSE_PID)
-      {
-          /* Button 1 short press: move forward 1 cell */
-          if (button1.wasPressed && SHORT_PRESS(button1.duration))
-          {
-              HAL_Delay(1000);
-              Mouse_MoveCellForward(&mouse, 1);
-              button1.wasPressed = false;
-          }
+      /* --- Move controller test: auto-trigger 1-cell forward after 3 sec --- */
+      static bool move_triggered = false;
+      static uint32_t last_ctrl_print = 0;
 
-          /* Button 1 long press: enter State Selection Mode */
-          if (button1.wasPressed && LONG_PRESS(button1.duration))
+      if (!move_triggered && HAL_GetTick() > 3000 && mouse.state == MOUSE_IDLE)
+      {
+          printf("\r\n--- TRIGGERING 1-CELL FORWARD MOVE ---\r\n");
+          Mouse_MoveCellForward(&mouse, 1);
+          move_triggered = true;
+      }
+
+      /* Debug print during move controller */
+      if (mouse.state == MOUSE_MOVE_CONTROLLER)
+      {
+          if (HAL_GetTick() - last_ctrl_print > 50)
           {
-              State_Selection();
-              button1.wasPressed = false;
+              printf("CTRL -> dist: %6.1f | fwd: %5.1f | ang: %5.1f | dir: %5.1f | posY: %6.1f\r\n",
+                     mouse.distance_to_travel, mouse.forward,
+                     mouse.angle_to_achieve, mouse.direction,
+                     mouse.actual_position_y);
+              last_ctrl_print = HAL_GetTick();
           }
       }
-      else
+      else if (mouse.state == MOUSE_STOP && move_triggered)
       {
-          button1.wasPressed = false; /* Discard any false presses */
+          printf("\r\n--- MOVE COMPLETE. Final posY: %.1f mm ---\r\n", mouse.actual_position_y);
+          move_triggered = false; /* Allow another trigger if you reset */
+          mouse.state = MOUSE_IDLE;
       }
 
     /* USER CODE END WHILE */

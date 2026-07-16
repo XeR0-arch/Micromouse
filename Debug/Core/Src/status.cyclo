@@ -1,6 +1,0 @@
-../Core/Src/status.c:24:6:Status_Init	1
-../Core/Src/status.c:32:6:Status_SetState	6
-../Core/Src/status.c:55:15:Status_GetState	1
-../Core/Src/status.c:59:6:Status_SetModeLEDs	1
-../Core/Src/status.c:65:6:Status_SetMessage	1
-../Core/Src/status.c:76:6:Status_Update	17

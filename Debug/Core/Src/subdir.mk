@@ -7,15 +7,16 @@
 C_SRCS += \
 ../Core/Src/adc.c \
 ../Core/Src/dma.c \
-../Core/Src/floodfill.c \
+../Core/Src/encoders.c \
 ../Core/Src/gpio.c \
 ../Core/Src/i2c.c \
-../Core/Src/ir_distance.c \
 ../Core/Src/main.c \
-../Core/Src/motor_control.c \
+../Core/Src/map.c \
+../Core/Src/motors.c \
+../Core/Src/mouse.c \
 ../Core/Src/mpu6050.c \
-../Core/Src/navigation.c \
-../Core/Src/status.c \
+../Core/Src/pid.c \
+../Core/Src/sensors.c \
 ../Core/Src/stm32f4xx_hal_msp.c \
 ../Core/Src/stm32f4xx_it.c \
 ../Core/Src/syscalls.c \
@@ -23,20 +24,22 @@ C_SRCS += \
 ../Core/Src/system_stm32f4xx.c \
 ../Core/Src/tim.c \
 ../Core/Src/uart.c \
+../Core/Src/ui.c \
 ../Core/Src/usart.c 
 
 OBJS += \
 ./Core/Src/adc.o \
 ./Core/Src/dma.o \
-./Core/Src/floodfill.o \
+./Core/Src/encoders.o \
 ./Core/Src/gpio.o \
 ./Core/Src/i2c.o \
-./Core/Src/ir_distance.o \
 ./Core/Src/main.o \
-./Core/Src/motor_control.o \
+./Core/Src/map.o \
+./Core/Src/motors.o \
+./Core/Src/mouse.o \
 ./Core/Src/mpu6050.o \
-./Core/Src/navigation.o \
-./Core/Src/status.o \
+./Core/Src/pid.o \
+./Core/Src/sensors.o \
 ./Core/Src/stm32f4xx_hal_msp.o \
 ./Core/Src/stm32f4xx_it.o \
 ./Core/Src/syscalls.o \
@@ -44,20 +47,22 @@ OBJS += \
 ./Core/Src/system_stm32f4xx.o \
 ./Core/Src/tim.o \
 ./Core/Src/uart.o \
+./Core/Src/ui.o \
 ./Core/Src/usart.o 
 
 C_DEPS += \
 ./Core/Src/adc.d \
 ./Core/Src/dma.d \
-./Core/Src/floodfill.d \
+./Core/Src/encoders.d \
 ./Core/Src/gpio.d \
 ./Core/Src/i2c.d \
-./Core/Src/ir_distance.d \
 ./Core/Src/main.d \
-./Core/Src/motor_control.d \
+./Core/Src/map.d \
+./Core/Src/motors.d \
+./Core/Src/mouse.d \
 ./Core/Src/mpu6050.d \
-./Core/Src/navigation.d \
-./Core/Src/status.d \
+./Core/Src/pid.d \
+./Core/Src/sensors.d \
 ./Core/Src/stm32f4xx_hal_msp.d \
 ./Core/Src/stm32f4xx_it.d \
 ./Core/Src/syscalls.d \
@@ -65,6 +70,7 @@ C_DEPS += \
 ./Core/Src/system_stm32f4xx.d \
 ./Core/Src/tim.d \
 ./Core/Src/uart.d \
+./Core/Src/ui.d \
 ./Core/Src/usart.d 
 
 
@@ -75,7 +81,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/dma.cyclo ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/dma.su ./Core/Src/floodfill.cyclo ./Core/Src/floodfill.d ./Core/Src/floodfill.o ./Core/Src/floodfill.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/i2c.cyclo ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/i2c.su ./Core/Src/ir_distance.cyclo ./Core/Src/ir_distance.d ./Core/Src/ir_distance.o ./Core/Src/ir_distance.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/motor_control.cyclo ./Core/Src/motor_control.d ./Core/Src/motor_control.o ./Core/Src/motor_control.su ./Core/Src/mpu6050.cyclo ./Core/Src/mpu6050.d ./Core/Src/mpu6050.o ./Core/Src/mpu6050.su ./Core/Src/navigation.cyclo ./Core/Src/navigation.d ./Core/Src/navigation.o ./Core/Src/navigation.su ./Core/Src/status.cyclo ./Core/Src/status.d ./Core/Src/status.o ./Core/Src/status.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su ./Core/Src/tim.cyclo ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/tim.su ./Core/Src/uart.cyclo ./Core/Src/uart.d ./Core/Src/uart.o ./Core/Src/uart.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su
+	-$(RM) ./Core/Src/adc.cyclo ./Core/Src/adc.d ./Core/Src/adc.o ./Core/Src/adc.su ./Core/Src/dma.cyclo ./Core/Src/dma.d ./Core/Src/dma.o ./Core/Src/dma.su ./Core/Src/encoders.cyclo ./Core/Src/encoders.d ./Core/Src/encoders.o ./Core/Src/encoders.su ./Core/Src/gpio.cyclo ./Core/Src/gpio.d ./Core/Src/gpio.o ./Core/Src/gpio.su ./Core/Src/i2c.cyclo ./Core/Src/i2c.d ./Core/Src/i2c.o ./Core/Src/i2c.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/map.cyclo ./Core/Src/map.d ./Core/Src/map.o ./Core/Src/map.su ./Core/Src/motors.cyclo ./Core/Src/motors.d ./Core/Src/motors.o ./Core/Src/motors.su ./Core/Src/mouse.cyclo ./Core/Src/mouse.d ./Core/Src/mouse.o ./Core/Src/mouse.su ./Core/Src/mpu6050.cyclo ./Core/Src/mpu6050.d ./Core/Src/mpu6050.o ./Core/Src/mpu6050.su ./Core/Src/pid.cyclo ./Core/Src/pid.d ./Core/Src/pid.o ./Core/Src/pid.su ./Core/Src/sensors.cyclo ./Core/Src/sensors.d ./Core/Src/sensors.o ./Core/Src/sensors.su ./Core/Src/stm32f4xx_hal_msp.cyclo ./Core/Src/stm32f4xx_hal_msp.d ./Core/Src/stm32f4xx_hal_msp.o ./Core/Src/stm32f4xx_hal_msp.su ./Core/Src/stm32f4xx_it.cyclo ./Core/Src/stm32f4xx_it.d ./Core/Src/stm32f4xx_it.o ./Core/Src/stm32f4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f4xx.cyclo ./Core/Src/system_stm32f4xx.d ./Core/Src/system_stm32f4xx.o ./Core/Src/system_stm32f4xx.su ./Core/Src/tim.cyclo ./Core/Src/tim.d ./Core/Src/tim.o ./Core/Src/tim.su ./Core/Src/uart.cyclo ./Core/Src/uart.d ./Core/Src/uart.o ./Core/Src/uart.su ./Core/Src/ui.cyclo ./Core/Src/ui.d ./Core/Src/ui.o ./Core/Src/ui.su ./Core/Src/usart.cyclo ./Core/Src/usart.d ./Core/Src/usart.o ./Core/Src/usart.su
 
 .PHONY: clean-Core-2f-Src
 

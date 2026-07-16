@@ -27,30 +27,70 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
-#include "ir_distance.h"
-#include "motor_control.h"
-#include "mpu6050.h"
-#include "status.h"
+#include "mouse.h"
+#include "pid.h"
+#include "motors.h"
+#include "encoders.h"
+#include "sensors.h"
+#include "ui.h"
+#include "map.h"
 #include "uart.h"
-#include "navigation.h"
-#include "floodfill.h"
-
+#include "mpu6050.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM4) {
-		Motor_Control_Update();
-	}
-	if (htim->Instance == TIM10) {
-		IR_Tick();  // Non-blocking: alternates ambient/active reads at 40Hz
-		MPU6050_Update(0.025);
-	}
+
+/* Sensor reading flag — set in TIM4 ISR, consumed in main loop */
+volatile bool flag_sensors = false;
+volatile bool flag_sensors_in_progress = false;
+
+/**
+ * @brief  TIM4 Period Elapsed Callback — Control Loop Heartbeat (~1 kHz)
+ *
+ * This is the real-time control pipeline, adapted from the reference
+ * TIM7_IRQHandler:
+ * 1. Update odometry (encoder deltas → position/heading)
+ * 2. Run move controller (forward + direction)
+ * 3. Mix velocities into motor RPM setpoints
+ * 4. Run motor PID controllers
+ * 5. Trigger sensor reading in main loop
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM4)
+    {
+        /* 1. Odometry */
+        Encoders_UpdatePosition(&mouse, &motorLeft, &motorRight);
+
+        /* 2. Move controller */
+        if (Mouse_ControllerIsEnabled(&mouse))
+        {
+            if (mouse.forward_control)
+                Mouse_ControllerForward(&mouse);
+            if (mouse.rotation_control)
+                Mouse_ControllerDirection(&mouse);
+        }
+
+        /* 3. Mix forward/direction into motor RPM setpoints */
+        if (mouse.state != MOUSE_MANUAL)
+        {
+            motorLeft.set_rpm  = mouse.forward + mouse.direction;
+            motorRight.set_rpm = mouse.forward - mouse.direction;
+        }
+
+        /* 4. Motor PID */
+        if (PID_IsEnabled(&motorLeft))
+            PID_Controller(&motorLeft);
+        if (PID_IsEnabled(&motorRight))
+            PID_Controller(&motorRight);
+
+        /* 5. Trigger sensor read in main loop */
+        if (!flag_sensors && !flag_sensors_in_progress)
+            flag_sensors = true;
+    }
 }
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -120,36 +160,96 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
-	Motor_Control_Init();
-	IR_Distance_Init();
-	MPU6050_Init();
-	MPU6050_Calibrate();
-	HAL_TIM_Base_Start_IT(&htim10);  // Start TIM10 interrupt for 40Hz loop
-	//char msg[50];
-//  Navigation_Init();
+
+  /* Initialize application modules */
+  Motors_Init();   /* Starts encoders, PWM, TIM4 interrupt */
+
+  /* Initialize PID controllers — gains need tuning for 1 kHz rate */
+  PID_Init(&motorLeft,  MOTOR_LEFT,  0.0021f, 0.008f, 0.00003f);
+  PID_Init(&motorRight, MOTOR_RIGHT, 0.0021f, 0.008f, 0.00003f);
+
+  PID_Disable(&motorLeft);
+  PID_Disable(&motorRight);
+  Mouse_ControllerDisable(&mouse);
+
+  Map_Init(&mouse);
+
+  mouse.face_direction = DIR_NORTH;
+  mouse.state = MOUSE_IDLE;
+
+  /* Initialize MPU6050 (left untouched, not integrated into control loop) */
+  MPU6050_Init();
+
+  UART_Print("\r\n--- MicroMouse Ready ---\r\n");
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+      /* --- Sensor reading (main loop, flag-triggered) --- */
+      if (flag_sensors)
+      {
+          flag_sensors_in_progress = true;
 
-	char msg[128];
-	while (1) {
-		// Drive a single side_cm x side_cm square. Each 90-degree turn is
-		// closed-loop corrected against the MPU yaw estimate (see
-		// Motor_Turn_Degrees_MPU / Motor_Drive_Square in motor_control.c),
-		// so wheel slip on a turn gets caught and corrected before the next
-		// side starts, instead of compounding corner-to-corner.
-		Motor_Drive_Square(-24.0);
+          static uint32_t last_print = 0;
 
-		// Report heading error at the end of the loop for debugging/tuning.
-		sprintf(msg, "heading: %.2f\n\r", Motor_Get_Heading());
-		UART_Print(msg);
+          if (mouse.state == MOUSE_IDLE)
+          {
+              if (HAL_GetTick() - last_print > 500)
+              {
+                  double dist_lf = Sensor_GetLeftFront(SENSOR_MM);
+                  double dist_rf = Sensor_GetRightFront(SENSOR_MM);
+                  double dist_ls = Sensor_GetLeftSide(SENSOR_MM);
+                  double dist_rs = Sensor_GetRightSide(SENSOR_MM);
 
-		HAL_Delay(5000);
+                  printf("Dist(mm) -> RS: %5.1f | RF: %5.1f | LF: %5.1f | LS: %5.1f \r\n", 
+                         dist_rs, dist_rf, dist_lf, dist_ls);
+                  last_print = HAL_GetTick();
+              }
+          }
+          else
+          {
+              mouse.left_front_sensor_mm  = Sensor_GetLeftFront(SENSOR_MM);
+              mouse.right_front_sensor_mm = Sensor_GetRightFront(SENSOR_MM);
+              mouse.left_side_sensor_mm   = Sensor_GetLeftSide(SENSOR_MM);
+              mouse.right_side_sensor_mm  = Sensor_GetRightSide(SENSOR_MM);
+          }
+
+          flag_sensors = false;
+          flag_sensors_in_progress = false;
+      }
+
+      /* --- State machine --- */
+      State_Handle();
+
+      /* --- LED heartbeat --- */
+      LED_Heartbeat();
+
+      /* --- Button handling --- */
+      Button_Poll();
+
+      /* Button 1 short press: move forward 1 cell */
+      if (button1.wasPressed && SHORT_PRESS(button1.duration))
+      {
+          HAL_Delay(1000);
+          Mouse_MoveCellForward(&mouse, 1);
+          button1.wasPressed = false;
+      }
+
+      /* Button 1 long press: rotate 90° */
+      if (button1.wasPressed && LONG_PRESS(button1.duration))
+      {
+          HAL_Delay(1000);
+          Mouse_SetOrientation(&mouse, 90.0f);
+          button1.wasPressed = false;
+      }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	}
+  }
   /* USER CODE END 3 */
 }
 

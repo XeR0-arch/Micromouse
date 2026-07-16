@@ -1,4 +1,4 @@
-../Core/Src/uart.c:6:6:UART_Debug_Init	1
-../Core/Src/uart.c:11:6:UART_Print	1
+../Core/Src/uart.c:12:6:UART_SendChar	1
+../Core/Src/uart.c:17:6:UART_Print	1
 ../Core/Src/uart.c:29:1:__io_putchar	1
-../Core/Src/uart.c:38:5:_write	2
+../Core/Src/uart.c:35:5:_write	2

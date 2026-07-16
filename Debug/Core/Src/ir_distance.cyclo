@@ -1,6 +1,0 @@
-../Core/Src/ir_distance.c:31:13:set_emitters	2
-../Core/Src/ir_distance.c:39:17:read_adc_channel	3
-../Core/Src/ir_distance.c:60:6:IR_Distance_Init	1
-../Core/Src/ir_distance.c:83:6:IR_Tick	5
-../Core/Src/ir_distance.c:119:6:IR_Distance	7
-../Core/Src/ir_distance.c:149:6:GET_Walls	5

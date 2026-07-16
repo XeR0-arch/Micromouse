@@ -1,6 +1,5 @@
 #include "mpu6050.h"
 #include "i2c.h"
-#include "status.h"
 #include <math.h>
 
 /* I2C Address and Configuration Registers */

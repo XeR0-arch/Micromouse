@@ -1,0 +1,3 @@
+../Core/Src/ui.c:18:6:State_Handle	8	static
+../Core/Src/ui.c:82:6:LED_Heartbeat	16	static
+../Core/Src/ui.c:93:6:Button_Poll	16	static

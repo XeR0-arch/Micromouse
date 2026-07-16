@@ -1,0 +1,5 @@
+../Core/Src/pid.c:14:6:PID_Init	32	static
+../Core/Src/pid.c:37:6:PID_Controller	16	static
+../Core/Src/pid.c:62:6:PID_Enable	16	static
+../Core/Src/pid.c:67:6:PID_Disable	16	static
+../Core/Src/pid.c:72:6:PID_IsEnabled	16	static

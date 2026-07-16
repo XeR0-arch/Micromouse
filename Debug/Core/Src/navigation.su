@@ -1,7 +1,0 @@
-../Core/Src/navigation.c:17:13:reset_ir_history	4	static
-../Core/Src/navigation.c:22:6:Navigation_Init	8	static
-../Core/Src/navigation.c:50:7:Navigation_GetCardinalAngle	16	static
-../Core/Src/navigation.c:65:6:Navigation_DelayOrUpdate	56	static
-../Core/Src/navigation.c:136:6:Navigation_AlignWithWalls	24	static
-../Core/Src/navigation.c:185:6:Navigation_MoveToCell	24	static
-../Core/Src/navigation.c:230:6:Navigation_LoopStep	16	static

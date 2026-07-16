@@ -124,7 +124,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     PA7     ------> ADC1_IN7
     */
     GPIO_InitStruct.Pin = ir_in_1_Pin|ir_in_2_Pin|ir_in_3_Pin|ir_in_4_Pin
-                          |ir_in_5_Pin|ir_in_6_Pin;
+                          |For_future_use_Pin|For_future_useA7_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -174,7 +174,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     PA7     ------> ADC1_IN7
     */
     HAL_GPIO_DeInit(GPIOA, ir_in_1_Pin|ir_in_2_Pin|ir_in_3_Pin|ir_in_4_Pin
-                          |ir_in_5_Pin|ir_in_6_Pin);
+                          |For_future_use_Pin|For_future_useA7_Pin);
 
     /* ADC1 DMA DeInit */
     HAL_DMA_DeInit(adcHandle->DMA_Handle);

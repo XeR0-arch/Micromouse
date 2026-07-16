@@ -1,0 +1,9 @@
+../Core/Src/sensors.c:19:13:emitter_off	1
+../Core/Src/sensors.c:25:13:emitter_on	1
+../Core/Src/sensors.c:31:13:delay_short	2
+../Core/Src/sensors.c:38:17:read_adc_channel	3
+../Core/Src/sensors.c:67:15:sensor_read	8
+../Core/Src/sensors.c:112:8:Sensor_GetLeftFront	1
+../Core/Src/sensors.c:118:8:Sensor_GetRightFront	1
+../Core/Src/sensors.c:124:8:Sensor_GetLeftSide	1
+../Core/Src/sensors.c:130:8:Sensor_GetRightSide	1

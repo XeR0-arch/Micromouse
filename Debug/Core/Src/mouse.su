@@ -1,0 +1,8 @@
+../Core/Src/mouse.c:26:6:Mouse_ControllerForward	24	static
+../Core/Src/mouse.c:65:6:Mouse_ControllerDirection	24	static
+../Core/Src/mouse.c:132:6:Mouse_ControllerEnable	16	static
+../Core/Src/mouse.c:133:6:Mouse_ControllerDisable	16	static
+../Core/Src/mouse.c:134:6:Mouse_ControllerIsEnabled	16	static
+../Core/Src/mouse.c:137:6:Mouse_SetPosition	24	static
+../Core/Src/mouse.c:148:6:Mouse_SetOrientation	16	static
+../Core/Src/mouse.c:163:6:Mouse_MoveCellForward	24	static

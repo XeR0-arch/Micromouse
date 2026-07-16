@@ -49,6 +49,15 @@ void Mouse_ControllerForward(Mouse_t *m)
     else if (out < -FORWARD_MAX_SPEED)
         out = -FORWARD_MAX_SPEED;
 
+    /* Front wall emergency stop — prevents overshoot into walls */
+    if (m->left_front_sensor_mm < 80.0 && m->right_front_sensor_mm < 80.0)
+    {
+        m->forward   = 0.0f;
+        m->direction = 0.0f;
+        m->state     = MOUSE_STOP;
+        return;
+    }
+
     /* Arrival check (within 5mm) */
     if (m->distance_to_travel > 5.0f)
     {
@@ -174,35 +183,30 @@ void Mouse_MoveCellForward(Mouse_t *m, uint8_t num_cells)
 
     if (m->face_direction == DIR_NORTH)
     {
-        if (m->actual_position_x == 0.0f && m->actual_position_y == 0.0f)
-        {
-            /* First cell — offset to reach centre */
-            Mouse_SetPosition(m, m->actual_position_x,
-                              m->actual_position_y + (num_cells * cell_size) + 70.0f);
-        }
-        else
-        {
-            Mouse_SetPosition(m, m->actual_position_x,
-                              m->actual_position_y + (num_cells * cell_size));
-        }
-        m->current_map_index += num_cells * 3;
+        Mouse_SetPosition(m, m->actual_position_x,
+                          m->actual_position_y + (num_cells * cell_size));
+        m->current_map_index += num_cells * MAP_COLS;
+        m->mouse_y += num_cells;
     }
     else if (m->face_direction == DIR_SOUTH)
     {
         Mouse_SetPosition(m, m->actual_position_x,
                           m->actual_position_y - (num_cells * cell_size));
-        m->current_map_index -= num_cells * 3;
+        m->current_map_index -= num_cells * MAP_COLS;
+        m->mouse_y -= num_cells;
     }
     else if (m->face_direction == DIR_WEST)
     {
         Mouse_SetPosition(m, m->actual_position_x - (num_cells * cell_size),
                           m->actual_position_y);
         m->current_map_index -= num_cells;
+        m->mouse_x -= num_cells;
     }
     else if (m->face_direction == DIR_EAST)
     {
         Mouse_SetPosition(m, m->actual_position_x + (num_cells * cell_size),
                           m->actual_position_y);
         m->current_map_index += num_cells;
+        m->mouse_x += num_cells;
     }
 }

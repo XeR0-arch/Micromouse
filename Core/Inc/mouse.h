@@ -36,8 +36,10 @@ typedef enum {
     MOUSE_MOVE_CONTROLLER = 8
 } MouseState_t;
 
-/* MAP_SIZE: number of cells in the map array */
-#define MAP_SIZE 16
+/* MAP_SIZE: number of cells in the map array (16x16 = 256) */
+#define MAP_SIZE    256
+#define MAP_COLS    16
+#define MAP_ROWS    16
 
 typedef struct Mouse_tag {
 
@@ -76,6 +78,8 @@ typedef struct Mouse_tag {
     /* Map */
     uint8_t map[MAP_SIZE];
     uint8_t current_map_index;
+    uint8_t mouse_x;  /* column (0-15), 0=west edge */
+    uint8_t mouse_y;  /* row    (0-15), 0=south edge */
 
 } Mouse_t;
 

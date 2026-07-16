@@ -34,6 +34,7 @@
 #include "sensors.h"
 #include "ui.h"
 #include "map.h"
+#include "floodfill.h"
 #include "uart.h"
 #include "mpu6050.h"
 /* USER CODE END Includes */
@@ -182,6 +183,24 @@ int main(void)
 
   UART_Print("\r\n--- MicroMouse Ready ---\r\n");
 
+  /* 3-second countdown — place mouse and step back */
+  for (int i = 3; i > 0; i--)
+  {
+      printf("Starting in %d...\r\n", i);
+      HAL_GPIO_TogglePin(on_board_led_GPIO_Port, on_board_led_Pin);
+      HAL_Delay(1000);
+  }
+
+  /* Initialize and run floodfill */
+  Floodfill_Init();
+  PID_Enable(&motorLeft);
+  PID_Enable(&motorRight);
+  Mouse_ControllerEnable(&mouse);
+  mouse.state = MOUSE_RUN;
+  UART_Print("\r\n--- SOLVING ---\r\n");
+  Floodfill_Run(false);  /* blocks until center reached */
+  UART_Print("\r\n--- DONE ---\r\n");
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -192,31 +211,10 @@ int main(void)
       if (flag_sensors)
       {
           flag_sensors_in_progress = true;
-
-          static uint32_t last_print = 0;
-
-          if (mouse.state == MOUSE_IDLE)
-          {
-              if (HAL_GetTick() - last_print > 500)
-              {
-                  double dist_lf = Sensor_GetLeftFront(SENSOR_MM);
-                  double dist_rf = Sensor_GetRightFront(SENSOR_MM);
-                  double dist_ls = Sensor_GetLeftSide(SENSOR_MM);
-                  double dist_rs = Sensor_GetRightSide(SENSOR_MM);
-
-                  // printf("Dist(mm) -> RS: %5.1f | RF: %5.1f | LF: %5.1f | LS: %5.1f \r\n", 
-                  //        dist_rs, dist_rf, dist_lf, dist_ls);
-                  last_print = HAL_GetTick();
-              }
-          }
-          else
-          {
-              mouse.left_front_sensor_mm  = Sensor_GetLeftFront(SENSOR_MM);
-              mouse.right_front_sensor_mm = Sensor_GetRightFront(SENSOR_MM);
-              mouse.left_side_sensor_mm   = Sensor_GetLeftSide(SENSOR_MM);
-              mouse.right_side_sensor_mm  = Sensor_GetRightSide(SENSOR_MM);
-          }
-
+          mouse.left_front_sensor_mm  = Sensor_GetLeftFront(SENSOR_MM);
+          mouse.right_front_sensor_mm = Sensor_GetRightFront(SENSOR_MM);
+          mouse.left_side_sensor_mm   = Sensor_GetLeftSide(SENSOR_MM);
+          mouse.right_side_sensor_mm  = Sensor_GetRightSide(SENSOR_MM);
           flag_sensors = false;
           flag_sensors_in_progress = false;
       }
@@ -227,7 +225,7 @@ int main(void)
       /* --- LED heartbeat --- */
       LED_Heartbeat();
 
-    /* USER CODE END WHILE */
+
 
     /* USER CODE BEGIN 3 */
   }

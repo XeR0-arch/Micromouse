@@ -1,4 +1,4 @@
-../Core/Src/map.c:16:6:Map_Init	24	static
-../Core/Src/map.c:60:6:Map_AddWall	16	static
-../Core/Src/map.c:75:6:Map_Update	16	static
-../Core/Src/map.c:126:6:Map_Print	104	static
+../Core/Src/map.c:16:6:Map_Init	32	static
+../Core/Src/map.c:45:6:Map_AddWall	24	static
+../Core/Src/map.c:64:6:Map_Update	16	static
+../Core/Src/map.c:115:6:Map_Print	120	static

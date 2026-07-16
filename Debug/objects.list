@@ -1,6 +1,7 @@
 "./Core/Src/adc.o"
 "./Core/Src/dma.o"
 "./Core/Src/encoders.o"
+"./Core/Src/floodfill.o"
 "./Core/Src/gpio.o"
 "./Core/Src/i2c.o"
 "./Core/Src/main.o"

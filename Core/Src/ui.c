@@ -46,7 +46,10 @@ void State_Handle(void)
             break;
 
         case MOUSE_RUN:
-            /* Autonomous maze solving (future) */
+            /* Autonomous maze solving — PID + controller must be active */
+            PID_Enable(&motorLeft);
+            PID_Enable(&motorRight);
+            Mouse_ControllerEnable(&mouse);
             break;
 
         case MOUSE_TEST:

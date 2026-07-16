@@ -72,12 +72,12 @@ void Mouse_ControllerDirection(Mouse_t *m)
         /* Driving forward — wall following */
         Rkp = 0.08f;
 
-        if (m->left_side_sensor_mm < 140.0)
+        if (m->left_side_sensor_mm < 160.0)
         {
             /* Track left wall */
             m->angle_to_achieve = 80.0f - (float)m->left_side_sensor_mm;
         }
-        else if (m->right_side_sensor_mm < 140.0)
+        else if (m->right_side_sensor_mm < 160.0)
         {
             /* Track right wall */
             m->angle_to_achieve = (float)m->right_side_sensor_mm - 80.0f;
@@ -162,7 +162,7 @@ void Mouse_SetOrientation(Mouse_t *m, float new_angle)
 
 void Mouse_MoveCellForward(Mouse_t *m, uint8_t num_cells)
 {
-    float cell_size = 250.0f; /* mm — standard micromouse cell */
+    float cell_size = 240.0f; /* mm — cell internal dimension (without walls) */
 
     if (m->face_direction == DIR_NORTH)
     {

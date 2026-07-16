@@ -54,11 +54,23 @@ void State_Handle(void)
             break;
 
         case MOUSE_PID:
+        {
             /* PID tuning mode: enable PID only, no move controller */
             Mouse_ControllerDisable(&mouse);
+            motorLeft.set_rpm = 100.0f;
+            motorRight.set_rpm = 100.0f;
             PID_Enable(&motorLeft);
             PID_Enable(&motorRight);
+
+            static uint32_t last_pid_print = 0;
+            if (HAL_GetTick() - last_pid_print > 50)
+            {
+                printf("RPM -> L: %5.1f | R: %5.1f \r\n", 
+                       motorLeft.act_rpm_filtered, motorRight.act_rpm_filtered);
+                last_pid_print = HAL_GetTick();
+            }
             break;
+        }
 
         case MOUSE_MANUAL:
             /* Manual mode: disable PID, set PWM directly from set_rpm */
@@ -76,6 +88,47 @@ void State_Handle(void)
             Mouse_ControllerEnable(&mouse);
             break;
     }
+}
+
+/* ---------- State Selection Mode ---------- */
+void State_Selection(void)
+{
+    volatile static uint8_t mode = 1;
+    mode = mouse.state;
+
+    printf("\r\n--- STATE SELECTION MODE ---\r\n");
+    printf("Current State: %d (Short press to cycle, Long press to confirm)\r\n", mode);
+
+    /* Wait for the user to release the long press before starting */
+    while (HAL_GPIO_ReadPin(button_1_GPIO_Port, button_1_Pin) == GPIO_PIN_SET) {
+        HAL_Delay(10);
+    }
+    button1.wasPressed = false;
+    button2.wasPressed = false;
+
+    while (1)
+    {
+        Button_Poll();
+
+        /* Short press Button 1 to cycle modes */
+        if (button1.wasPressed && SHORT_PRESS(button1.duration))
+        {
+            mode++;
+            if (mode > 8) mode = 0; /* 8 is MOUSE_MOVE_CONTROLLER */
+            printf("Selected State: %d\r\n", mode);
+            button1.wasPressed = false;
+        }
+
+        /* Long press Button 1 to confirm */
+        if (button1.wasPressed && LONG_PRESS(button1.duration))
+        {
+            printf("Confirmed State: %d\r\n", mode);
+            button1.wasPressed = false;
+            break;
+        }
+    }
+
+    mouse.state = (MouseState_t)mode;
 }
 
 /* ---------- LED Heartbeat ---------- */

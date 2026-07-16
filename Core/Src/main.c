@@ -73,7 +73,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
 
         /* 3. Mix forward/direction into motor RPM setpoints */
-        if (mouse.state != MOUSE_MANUAL)
+        if (mouse.state != MOUSE_MANUAL && mouse.state != MOUSE_PID)
         {
             motorLeft.set_rpm  = mouse.forward + mouse.direction;
             motorRight.set_rpm = mouse.forward - mouse.direction;
@@ -165,8 +165,8 @@ int main(void)
   Motors_Init();   /* Starts encoders, PWM, TIM4 interrupt */
 
   /* Initialize PID controllers — gains need tuning for 1 kHz rate */
-  PID_Init(&motorLeft,  MOTOR_LEFT,  0.0021f, 0.008f, 0.00003f);
-  PID_Init(&motorRight, MOTOR_RIGHT, 0.0021f, 0.008f, 0.00003f);
+  PID_Init(&motorLeft,  MOTOR_LEFT,  0.15f, 0.0f, 0.0f);
+  PID_Init(&motorRight, MOTOR_RIGHT, 0.15f, 0.0f, 0.0f);
 
   PID_Disable(&motorLeft);
   PID_Disable(&motorRight);
@@ -175,7 +175,7 @@ int main(void)
   Map_Init(&mouse);
 
   mouse.face_direction = DIR_NORTH;
-  mouse.state = MOUSE_IDLE;
+  mouse.state = MOUSE_PID;
 
   /* Initialize MPU6050 (left untouched, not integrated into control loop) */
   MPU6050_Init();
@@ -230,20 +230,27 @@ int main(void)
       /* --- Button handling --- */
       Button_Poll();
 
-      /* Button 1 short press: move forward 1 cell */
-      if (button1.wasPressed && SHORT_PRESS(button1.duration))
+      /* Button actions — skip during PID tuning (vibration can trigger false presses) */
+      if (mouse.state != MOUSE_PID)
       {
-          HAL_Delay(1000);
-          Mouse_MoveCellForward(&mouse, 1);
-          button1.wasPressed = false;
-      }
+          /* Button 1 short press: move forward 1 cell */
+          if (button1.wasPressed && SHORT_PRESS(button1.duration))
+          {
+              HAL_Delay(1000);
+              Mouse_MoveCellForward(&mouse, 1);
+              button1.wasPressed = false;
+          }
 
-      /* Button 1 long press: rotate 90° */
-      if (button1.wasPressed && LONG_PRESS(button1.duration))
+          /* Button 1 long press: enter State Selection Mode */
+          if (button1.wasPressed && LONG_PRESS(button1.duration))
+          {
+              State_Selection();
+              button1.wasPressed = false;
+          }
+      }
+      else
       {
-          HAL_Delay(1000);
-          Mouse_SetOrientation(&mouse, 90.0f);
-          button1.wasPressed = false;
+          button1.wasPressed = false; /* Discard any false presses */
       }
 
     /* USER CODE END WHILE */

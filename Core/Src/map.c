@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 /* Wall threshold for sensor-based detection (mm) */
-#define WALL_DETECT_THRESHOLD  140.0
+#define WALL_DETECT_THRESHOLD  200.0
 
 void Map_Init(Mouse_t *m)
 {

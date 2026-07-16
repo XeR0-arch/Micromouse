@@ -34,6 +34,7 @@ extern volatile Button_t button2;  /* PB9 */
 #define LONG_PRESS(d)   ((d) > 1000)
 
 void State_Handle(void);
+void State_Selection(void);
 void LED_Heartbeat(void);
 void Button_Poll(void);
 

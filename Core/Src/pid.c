@@ -56,7 +56,7 @@ void PID_Controller(Motor_t *motor)
     else if (motor->out < -1.0f)
         motor->out = -1.0f;
 
-    Motors_SetSpeed(motor, motor->out);
+    Motors_SetSpeed(motor, -motor->out);
 }
 
 void PID_Enable(Motor_t *motor)

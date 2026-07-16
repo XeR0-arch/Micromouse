@@ -35,14 +35,14 @@ void Encoders_UpdatePosition(Mouse_t *mouse, Motor_t *left, Motor_t *right)
     /* --- Left encoder --- */
     left->encPrev = left->enc;
     left->enc     = Encoders_GetValue(left);
-    left->encDiff = left->enc - left->encPrev;
+    left->encDiff = -(left->enc - left->encPrev);
     left->dist    = (float)left->encDiff / ENCODER_CPR * WHEEL_CIRCUMFERENCE_MM;
     left->totalDist += left->dist;
 
     /* --- Right encoder --- */
     right->encPrev = right->enc;
     right->enc     = Encoders_GetValue(right);
-    right->encDiff = right->enc - right->encPrev;
+    right->encDiff = -(right->enc - right->encPrev);
     right->dist    = (float)right->encDiff / ENCODER_CPR * WHEEL_CIRCUMFERENCE_MM;
     right->totalDist += right->dist;
 

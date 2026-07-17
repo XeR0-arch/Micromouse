@@ -61,6 +61,7 @@ void PID_Init(Motor_t *motor, MotorSide_t side, float kp, float ki, float kd);
 void PID_Controller(Motor_t *motor);
 void PID_Enable(Motor_t *motor);
 void PID_Disable(Motor_t *motor);
+void PID_ResetState(Motor_t *motor);
 bool PID_IsEnabled(Motor_t *motor);
 
 #endif /* PID_H */

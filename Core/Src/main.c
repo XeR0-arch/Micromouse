@@ -89,6 +89,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         /* 5. Trigger sensor read in main loop */
         if (!flag_sensors && !flag_sensors_in_progress)
             flag_sensors = true;
+
+        /* 6. Schedule Gyro update at 200 Hz (every 5 ticks) */
+        static uint8_t gyro_tick = 0;
+        if (++gyro_tick >= 5)
+        {
+            gyro_tick = 0;
+            MPU6050_ScheduleUpdate();
+        }
     }
 }
 
@@ -222,6 +230,9 @@ int main(void)
 
       /* --- State machine --- */
       State_Handle();
+
+      /* --- Gyro Service --- */
+      MPU6050_Service();
 
       /* --- LED heartbeat --- */
       LED_Heartbeat();

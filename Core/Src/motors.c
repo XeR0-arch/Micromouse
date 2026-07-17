@@ -40,7 +40,10 @@ void Motors_Init(void)
 void Motors_SetSpeed(Motor_t *motor, float speed)
 {
     uint16_t pwm = (uint16_t)(fabsf(speed) * (float)MOTOR_MAX_PWM);
-    if (pwm > MOTOR_MAX_PWM) pwm = MOTOR_MAX_PWM;
+    
+    /* Motor deadband: prevent small PID errors from causing stall creep or hunting */
+    if (pwm < 1200) pwm = 0;
+    else if (pwm > MOTOR_MAX_PWM) pwm = MOTOR_MAX_PWM;
 
     switch (motor->side)
     {

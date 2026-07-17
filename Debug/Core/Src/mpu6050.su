@@ -6,5 +6,6 @@
 ../Core/Src/mpu6050.c:125:6:MPU6050_Service	24	static,ignoring_inline_asm
 ../Core/Src/mpu6050.c:157:6:MPU6050_Update	48	static
 ../Core/Src/mpu6050.c:197:7:MPU6050_ShortestAngleError	24	static
-../Core/Src/mpu6050.c:213:7:MPU6050_GetYawWrapped	16	static
-../Core/Src/mpu6050.c:222:7:MPU6050_GetYaw360	16	static
+../Core/Src/mpu6050.c:211:6:MPU6050_SetYaw	16	static
+../Core/Src/mpu6050.c:218:7:MPU6050_GetYawWrapped	16	static
+../Core/Src/mpu6050.c:227:7:MPU6050_GetYaw360	16	static

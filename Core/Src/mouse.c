@@ -9,6 +9,8 @@
  */
 #include "mouse.h"
 #include "encoders.h"
+#include "pid.h"
+#include "mpu6050.h"
 #include "uart.h"
 #include <math.h>
 #include <stdio.h>
@@ -18,7 +20,7 @@ Mouse_t mouse;
 /* PD gains for move controller */
 static float Fkp = 2.5f, Fkd = 0.00f;   /* Forward  */
 static float Rkp_turn = 2.5f, Rkd_turn = 0.00f; /* In-place Rotation */
-static float Rkp_wall = 0.0f, Rkd_wall = 0.00f; /* Wall-following */
+static float Rkp_wall = 0.1f, Rkd_wall = 0.00f; /* Wall-following */
 
 /* Controller time step — matches PID_TIME_STEP */
 #define CTRL_TIME_STEP  0.001f
@@ -39,6 +41,30 @@ void Mouse_ControllerForward(Mouse_t *m)
     else if (m->face_direction == DIR_EAST)
         m->distance_to_travel = m->new_position_x - m->actual_position_x;
 
+    /* Front sensor forward calibration — smoothly correct odometry to eliminate forward drift */
+    if (m->left_front_sensor_mm < 160.0 && m->right_front_sensor_mm < 160.0)
+    {
+        /* 77.5mm is the desired stopping distance from the wall (7.5 to 8 cm) */
+        float avg_front = (m->left_front_sensor_mm + m->right_front_sensor_mm) / 2.0f;
+        float true_dist = avg_front - 77.5f;
+        float alpha = 0.1f; /* Gently pull odometry to reality to prevent derivative spikes */
+
+        if (m->face_direction == DIR_NORTH) 
+            m->actual_position_y = (1.0f - alpha) * m->actual_position_y + alpha * (m->new_position_y - true_dist);
+        else if (m->face_direction == DIR_SOUTH) 
+            m->actual_position_y = (1.0f - alpha) * m->actual_position_y + alpha * (m->new_position_y + true_dist);
+        else if (m->face_direction == DIR_EAST)  
+            m->actual_position_x = (1.0f - alpha) * m->actual_position_x + alpha * (m->new_position_x - true_dist);
+        else if (m->face_direction == DIR_WEST)  
+            m->actual_position_x = (1.0f - alpha) * m->actual_position_x + alpha * (m->new_position_x + true_dist);
+
+        /* Recompute distance_to_travel after correction */
+        if (m->face_direction == DIR_NORTH)      m->distance_to_travel = m->new_position_y - m->actual_position_y;
+        else if (m->face_direction == DIR_SOUTH) m->distance_to_travel = fabsf(m->new_position_y - m->actual_position_y);
+        else if (m->face_direction == DIR_WEST)  m->distance_to_travel = fabsf(m->new_position_x - m->actual_position_x);
+        else if (m->face_direction == DIR_EAST)  m->distance_to_travel = m->new_position_x - m->actual_position_x;
+    }
+
     /* PD control */
     out = (Fkp * m->distance_to_travel)
         + (Fkd * (m->distance_to_travel - prev_dist) / CTRL_TIME_STEP);
@@ -49,8 +75,8 @@ void Mouse_ControllerForward(Mouse_t *m)
     else if (out < -FORWARD_MAX_SPEED)
         out = -FORWARD_MAX_SPEED;
 
-    /* Front wall emergency stop — prevents overshoot into walls */
-    if (m->left_front_sensor_mm < 80.0 && m->right_front_sensor_mm < 80.0)
+    /* Front wall emergency stop — lowered to 60mm to prevent premature stop */
+    if (m->left_front_sensor_mm < 60.0 && m->right_front_sensor_mm < 60.0)
     {
         m->forward   = 0.0f;
         m->direction = 0.0f;
@@ -81,26 +107,26 @@ void Mouse_ControllerDirection(Mouse_t *m)
 
     if (m->forward_control)
     {
-        /* Driving forward — wall following */
-        current_Rkp = Rkp_wall;
-        current_Rkd = Rkd_wall;
-
-        if (m->left_side_sensor_mm < 160.0)
+        /* Driving forward — only align when BOTH walls are present */
+        if (m->left_side_sensor_mm < 160.0 && m->right_side_sensor_mm < 160.0)
         {
-            /* Track left wall */
+            /* Two walls — use wall alignment */
+            current_Rkp = Rkp_wall;
+            current_Rkd = Rkd_wall;
             m->angle_to_achieve = 80.0f - (float)m->left_side_sensor_mm;
-        }
-        else if (m->right_side_sensor_mm < 160.0)
-        {
-            /* Track right wall */
-            m->angle_to_achieve = (float)m->right_side_sensor_mm - 80.0f;
+
+            /* Add aggression if error is large (e.g. after a bad turn) */
+            if (fabsf(m->angle_to_achieve) > 12.0f)
+            {
+                current_Rkp = 0.5f;
+            }
         }
         else
         {
-            /* No walls */
-            m->angle_to_achieve = (atan2f((m->new_position_x - m->actual_position_x),
-                        (m->new_position_y - m->actual_position_y)) * RAD_TO_DEG)
-                - m->actual_angle;
+            /* One wall or no walls — no correction, drive straight */
+            current_Rkp = 0.0f;
+            current_Rkd = 0.0f;
+            m->angle_to_achieve = 0.0f;
         }
     }
     else
@@ -134,7 +160,7 @@ void Mouse_ControllerDirection(Mouse_t *m)
     m->direction = out;
 
     /* In-place rotation arrival check */
-    if (!m->forward_control && fabsf(m->angle_to_achieve) < 0.5f)
+    if (!m->forward_control && fabsf(m->angle_to_achieve) < 1.5f)
     {
         m->direction = 0.0f;
         m->state     = MOUSE_STOP;
@@ -158,16 +184,26 @@ void Mouse_SetPosition(Mouse_t *m, float new_x, float new_y)
     m->angle_to_achieve  = 0.0f;
     m->forward           = 0.0f;
     m->direction         = 0.0f;
+
+    /* Flush motor PID accumulated errors from previous movement */
+    PID_ResetState(&motorLeft);
+    PID_ResetState(&motorRight);
 }
 
 void Mouse_SetOrientation(Mouse_t *m, float new_angle)
 {
-    m->new_angle        = new_angle;
-    m->state            = MOUSE_MOVE_CONTROLLER;
-    m->forward_control  = false;
-    m->rotation_control = true;
-    m->forward          = 0.0f;
-    m->direction        = 0.0f;
+    m->new_angle         = new_angle;
+    m->state             = MOUSE_MOVE_CONTROLLER;
+    m->forward_control   = false;
+    m->rotation_control  = true;
+    m->distance_to_travel = 0.0f;
+    m->angle_to_achieve  = 0.0f;   /* flush stale wall-alignment error */
+    m->forward           = 0.0f;
+    m->direction         = 0.0f;
+
+    /* Flush motor PID accumulated errors from previous movement */
+    PID_ResetState(&motorLeft);
+    PID_ResetState(&motorRight);
 
     /* Update face direction based on cardinal angle */
     if (new_angle == 0.0f)          m->face_direction = DIR_NORTH;

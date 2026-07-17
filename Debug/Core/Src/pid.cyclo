@@ -3,3 +3,4 @@
 ../Core/Src/pid.c:62:6:PID_Enable	1
 ../Core/Src/pid.c:67:6:PID_Disable	1
 ../Core/Src/pid.c:72:6:PID_IsEnabled	1
+../Core/Src/pid.c:77:6:PID_ResetState	1

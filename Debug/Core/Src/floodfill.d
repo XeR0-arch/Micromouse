@@ -33,7 +33,8 @@ Core/Src/floodfill.o: ../Core/Src/floodfill.c ../Core/Inc/floodfill.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/sensors.h ../Core/Inc/motors.h ../Core/Inc/pid.h \
- ../Core/Inc/pid.h ../Core/Inc/uart.h ../Core/Inc/main.h
+ ../Core/Inc/pid.h ../Core/Inc/mpu6050.h ../Core/Inc/uart.h \
+ ../Core/Inc/main.h
 ../Core/Inc/floodfill.h:
 ../Core/Inc/mouse.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
@@ -73,5 +74,6 @@ Core/Src/floodfill.o: ../Core/Src/floodfill.c ../Core/Inc/floodfill.h \
 ../Core/Inc/motors.h:
 ../Core/Inc/pid.h:
 ../Core/Inc/pid.h:
+../Core/Inc/mpu6050.h:
 ../Core/Inc/uart.h:
 ../Core/Inc/main.h:

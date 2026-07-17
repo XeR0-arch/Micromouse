@@ -46,12 +46,11 @@ void Encoders_UpdatePosition(Mouse_t *mouse, Motor_t *left, Motor_t *right)
     right->dist    = (float)right->encDiff / ENCODER_CPR * WHEEL_CIRCUMFERENCE_MM;
     right->totalDist += right->dist;
 
-    /* --- Heading from differential --- */
-    actual_angle_temporary = ((left->totalDist - right->totalDist))
-                             / DISTANCE_BETWEEN_WHEELS * RAD_TO_DEG;
-    mouse->actual_angle = fmodf(actual_angle_temporary, 360.0f);
+    /* --- Heading from differential (incremental) --- */
+    float angle_diff = (left->dist - right->dist) / DISTANCE_BETWEEN_WHEELS * RAD_TO_DEG;
+    mouse->actual_angle += angle_diff;
 
-    if (mouse->actual_angle < -180.0f)
+    if (mouse->actual_angle <= -180.0f)
         mouse->actual_angle += 360.0f;
     else if (mouse->actual_angle > 180.0f)
         mouse->actual_angle -= 360.0f;

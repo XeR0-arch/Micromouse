@@ -73,3 +73,11 @@ bool PID_IsEnabled(Motor_t *motor)
 {
     return motor->pidEnable;
 }
+
+void PID_ResetState(Motor_t *motor)
+{
+    motor->e       = 0.0f;
+    motor->e_prev  = 0.0f;
+    motor->e_total = 0.0f;
+    motor->out     = 0.0f;
+}

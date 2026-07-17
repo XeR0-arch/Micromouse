@@ -10,6 +10,7 @@
 #include "sensors.h"
 #include "motors.h"
 #include "pid.h"
+#include "mpu6050.h"
 #include "uart.h"
 #include <stdio.h>
 #include <string.h>
@@ -130,6 +131,9 @@ static void service_sensors(void)
         flag_sensors = false;
         flag_sensors_in_progress = false;
     }
+    
+    /* Service gyro while waiting */
+    MPU6050_Service();
 }
 
 /** Block until the current movement command completes */
@@ -159,14 +163,47 @@ static void do_turn_and_forward(float relative_degrees)
 {
     if (relative_degrees != 0.0f)
     {
-        HAL_Delay(1000);
-        float target = orientation_to_angle(orientiation) + relative_degrees;
-        if (target > 180.0f)  target -= 360.0f;
-        if (target < -180.0f) target += 360.0f;
+        HAL_Delay(500); // Wait for robot to settle before starting turn
+        
+        /* Eliminate heading drift accumulated over the straight.
+           Since wall-following keeps the mouse physically straight, any deviation
+           in actual_angle from a perfect 90-degree multiple is due to encoder drift. */
+        float nearest_90 = roundf(mouse.actual_angle / 90.0f) * 90.0f;
+        mouse.actual_angle = nearest_90;
+        MPU6050_SetYaw(nearest_90);
 
-        Mouse_SetOrientation(&mouse, target);
-        wait_for_movement();
-        HAL_Delay(1000);
+        float target_heading = orientation_to_angle(orientiation) + relative_degrees;
+        if (target_heading > 180.0f)  target_heading -= 360.0f;
+        if (target_heading < -180.0f) target_heading += 360.0f;
+
+        float remaining_turn = target_heading - MPU6050_GetYawWrapped();
+        if (remaining_turn > 180.0f)  remaining_turn -= 360.0f;
+        if (remaining_turn < -180.0f) remaining_turn += 360.0f;
+
+        /* High-level gyro correction loop (max 3 attempts) */
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            float turn_target = MPU6050_GetYawWrapped() + remaining_turn;
+            if (turn_target > 180.0f)  turn_target -= 360.0f;
+            if (turn_target < -180.0f) turn_target += 360.0f;
+
+            Mouse_SetOrientation(&mouse, turn_target);
+            wait_for_movement();
+
+            HAL_Delay(300);  // Let the robot/gyro settle physically
+
+            float current_yaw = MPU6050_GetYawWrapped();
+            float heading_error = target_heading - current_yaw;
+            if (heading_error > 180.0f)  heading_error -= 360.0f;
+            if (heading_error < -180.0f) heading_error += 360.0f;
+
+            if (fabsf(heading_error) <= 2.0f) // Tolerance: 2 degrees
+            {
+                break;
+            }
+
+            remaining_turn = heading_error;
+        }
     }
 
     Mouse_MoveCellForward(&mouse, 1);

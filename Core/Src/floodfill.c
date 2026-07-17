@@ -15,7 +15,7 @@
 #include <string.h>
 
 #define MAX_SIZE 256
-#define FLOOD_WALL_THRESHOLD  150.0
+#define FLOOD_WALL_THRESHOLD  170.0
 
 /* ---- Floodfill state ---- */
 int x = 0;
@@ -159,12 +159,14 @@ static void do_turn_and_forward(float relative_degrees)
 {
     if (relative_degrees != 0.0f)
     {
+        HAL_Delay(1000);
         float target = orientation_to_angle(orientiation) + relative_degrees;
         if (target > 180.0f)  target -= 360.0f;
         if (target < -180.0f) target += 360.0f;
 
         Mouse_SetOrientation(&mouse, target);
         wait_for_movement();
+        HAL_Delay(1000);
     }
 
     Mouse_MoveCellForward(&mouse, 1);

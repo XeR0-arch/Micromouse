@@ -198,49 +198,9 @@ int main(void)
   Mouse_ControllerEnable(&mouse);
   mouse.state = MOUSE_RUN;
 
-  UART_Print("\r\n--- SQUARE PATTERN TUNING ---\r\n");
-  while (1)
-  {
-      /* Move North */
-      Mouse_MoveCellForward(&mouse, 1);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-      
-      /* Turn East */
-      Mouse_SetOrientation(&mouse, 90.0f);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-
-      /* Move East */
-      Mouse_MoveCellForward(&mouse, 1);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-      
-      /* Turn South */
-      Mouse_SetOrientation(&mouse, 180.0f);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-
-      /* Move South */
-      Mouse_MoveCellForward(&mouse, 1);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-      
-      /* Turn West */
-      Mouse_SetOrientation(&mouse, -90.0f);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-
-      /* Move West */
-      Mouse_MoveCellForward(&mouse, 1);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-      
-      /* Turn North */
-      Mouse_SetOrientation(&mouse, 0.0f);
-      while (mouse.state == MOUSE_MOVE_CONTROLLER) {}
-      HAL_Delay(1000);
-  }
+  UART_Print("\r\n--- SOLVING ---\r\n");
+  Floodfill_Run(false);  /* blocks until center reached */
+  UART_Print("\r\n--- DONE ---\r\n");
 
   /* USER CODE END 2 */
 

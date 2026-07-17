@@ -33,7 +33,7 @@ Core/Src/encoders.o: ../Core/Src/encoders.c ../Core/Inc/encoders.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h \
  ../Core/Inc/pid.h ../Core/Inc/mouse.h ../Core/Inc/tim.h \
- ../Core/Inc/main.h
+ ../Core/Inc/main.h ../Core/Inc/mpu6050.h
 ../Core/Inc/encoders.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -72,3 +72,4 @@ Core/Src/encoders.o: ../Core/Src/encoders.c ../Core/Inc/encoders.h \
 ../Core/Inc/mouse.h:
 ../Core/Inc/tim.h:
 ../Core/Inc/main.h:
+../Core/Inc/mpu6050.h:

@@ -13,6 +13,7 @@
 #include "encoders.h"
 #include "mouse.h"
 #include "tim.h"
+#include "mpu6050.h"
 #include <math.h>
 int32_t Encoders_GetValue(Motor_t *motor)
 {
@@ -30,7 +31,6 @@ int32_t Encoders_GetValue(Motor_t *motor)
 void Encoders_UpdatePosition(Mouse_t *mouse, Motor_t *left, Motor_t *right)
 {
     float distance;
-    float actual_angle_temporary;
 
     /* --- Left encoder --- */
     left->encPrev = left->enc;
@@ -46,15 +46,17 @@ void Encoders_UpdatePosition(Mouse_t *mouse, Motor_t *left, Motor_t *right)
     right->dist    = (float)right->encDiff / ENCODER_CPR * WHEEL_CIRCUMFERENCE_MM;
     right->totalDist += right->dist;
 
-    /* --- Heading from differential --- */
-    actual_angle_temporary = ((left->totalDist - right->totalDist))
-                             / DISTANCE_BETWEEN_WHEELS * RAD_TO_DEG;
-    mouse->actual_angle = fmodf(actual_angle_temporary, 360.0f);
-
-    if (mouse->actual_angle < -180.0f)
-        mouse->actual_angle += 360.0f;
-    else if (mouse->actual_angle > 180.0f)
-        mouse->actual_angle -= 360.0f;
+    /* --- Heading from gyro, not wheel-encoder differential ---
+     * Wheel-encoder heading suffers slip during in-place spins and
+     * accumulates error over multiple turns / long straights — this was
+     * the original drift symptom. mpu.yaw_angle (via MPU6050_GetYawRaw())
+     * is a raw, UNBOUNDED accumulator by design; it is intentionally NOT
+     * wrapped here. Wrapping it in place would create a discontinuity that
+     * could re-trigger a turn's exit condition mid-turn. Any code that
+     * needs an error/difference from this value (mouse.c's controllers)
+     * must use MPU6050_ShortestAngleError() to wrap only at the point of
+     * comparison. */
+    mouse->actual_angle = MPU6050_GetYawRaw();
 
     /* --- Position from average distance --- */
     distance = (left->dist + right->dist) / 2.0f;

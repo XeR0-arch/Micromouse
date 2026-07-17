@@ -91,20 +91,22 @@ static double sensor_read(uint32_t channel, SensorUnit_t unit,
 
     /* 5. Apply distance curve if not RAW */
     if (unit != SENSOR_RAW)
-{
-    if (raw_value > 1.0)
     {
-        raw_value = (log_a / log(raw_value - log_b)) - log_c;
-        if (raw_value > 220.0) raw_value = 220.0;
-        if (raw_value < 0.0)   raw_value = 0.0;
+        if (raw_value > 1.0)
+        {
+            raw_value = (log_a / log(raw_value - log_b)) - log_c;
+            if (raw_value > 220.0) raw_value = 220.0;
+            if (raw_value < 0.0)   raw_value = 0.0;
+        }
+        else
+        {
+            /* No reflection detected (ambient ~= active) — open space /
+             * no wall in range. Previously this fell through and returned
+             * the near-zero raw diff directly, which reads as "very close"
+             * instead of "far away". Report max range instead. */
+            raw_value = 220.0;
+        }
     }
-    else
-    {
-        /* No meaningful reflected signal => far object or open side.
-           Report max range, not the near-zero raw diff. */
-        raw_value = 220.0;
-    }
-}
 
     if (unit == SENSOR_CM)
         raw_value /= 10.0;

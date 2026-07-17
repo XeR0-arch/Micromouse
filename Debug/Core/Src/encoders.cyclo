@@ -1,2 +1,2 @@
-../Core/Src/encoders.c:17:9:Encoders_GetValue	3
-../Core/Src/encoders.c:30:6:Encoders_UpdatePosition	3
+../Core/Src/encoders.c:18:9:Encoders_GetValue	3
+../Core/Src/encoders.c:31:6:Encoders_UpdatePosition	1

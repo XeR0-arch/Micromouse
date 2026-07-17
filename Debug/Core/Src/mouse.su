@@ -1,8 +1,8 @@
-../Core/Src/mouse.c:31:6:Mouse_ControllerForward	24	static
-../Core/Src/mouse.c:79:6:Mouse_ControllerDirection	56	static
-../Core/Src/mouse.c:165:6:Mouse_ControllerEnable	16	static
-../Core/Src/mouse.c:166:6:Mouse_ControllerDisable	16	static
-../Core/Src/mouse.c:167:6:Mouse_ControllerIsEnabled	16	static
-../Core/Src/mouse.c:170:6:Mouse_SetPosition	24	static
-../Core/Src/mouse.c:183:6:Mouse_SetOrientation	16	static
-../Core/Src/mouse.c:200:6:Mouse_MoveCellForward	24	static
+../Core/Src/mouse.c:39:6:Mouse_ControllerForward	40	static
+../Core/Src/mouse.c:121:6:Mouse_ControllerDirection	64	static
+../Core/Src/mouse.c:237:6:Mouse_ControllerEnable	16	static
+../Core/Src/mouse.c:238:6:Mouse_ControllerDisable	16	static
+../Core/Src/mouse.c:239:6:Mouse_ControllerIsEnabled	16	static
+../Core/Src/mouse.c:242:6:Mouse_SetPosition	24	static
+../Core/Src/mouse.c:255:6:Mouse_SetOrientation	16	static
+../Core/Src/mouse.c:272:6:Mouse_MoveCellForward	24	static

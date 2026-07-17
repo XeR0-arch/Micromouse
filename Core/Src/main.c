@@ -39,7 +39,6 @@
 #include "mpu6050.h"
 #include <stdio.h>
 /* USER CODE END Includes */
-/* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -74,7 +73,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             if (mouse.rotation_control)
                 Mouse_ControllerDirection(&mouse);
         }
-        
+
         /* 3. Mix forward/direction into motor RPM setpoints */
         if (mouse.state != MOUSE_MANUAL && mouse.state != MOUSE_PID)
         {
@@ -91,6 +90,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         /* 5. Trigger sensor read in main loop */
         if (!flag_sensors && !flag_sensors_in_progress)
             flag_sensors = true;
+    }
+    else if (htim->Instance == TIM10)
+    {
+        /* Gyro sample-rate tick. Only flags a pending update — the actual
+         * I2C read + integration happens in MPU6050_Service(), called from
+         * the main loop, to keep this ISR short. */
+        MPU6050_ScheduleUpdate();
     }
 }
 

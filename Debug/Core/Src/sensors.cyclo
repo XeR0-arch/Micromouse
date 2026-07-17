@@ -3,7 +3,7 @@
 ../Core/Src/sensors.c:31:13:delay_short	2
 ../Core/Src/sensors.c:38:17:read_adc_channel	3
 ../Core/Src/sensors.c:67:15:sensor_read	8
-../Core/Src/sensors.c:121:8:Sensor_GetLeftFront	1
-../Core/Src/sensors.c:126:8:Sensor_GetRightFront	1
-../Core/Src/sensors.c:131:8:Sensor_GetLeftSide	1
-../Core/Src/sensors.c:136:8:Sensor_GetRightSide	1
+../Core/Src/sensors.c:123:8:Sensor_GetLeftFront	1
+../Core/Src/sensors.c:128:8:Sensor_GetRightFront	1
+../Core/Src/sensors.c:133:8:Sensor_GetLeftSide	1
+../Core/Src/sensors.c:138:8:Sensor_GetRightSide	1

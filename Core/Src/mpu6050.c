@@ -1,5 +1,6 @@
 #include "mpu6050.h"
 #include "i2c.h"
+#include "tim.h"
 #include <math.h>
 
 /* I2C Address and Configuration Registers */
@@ -93,6 +94,13 @@ uint8_t MPU6050_Init(void)
      * Robot MUST be perfectly still on the ground during this (~500 ms).
      */
     MPU6050_Calibrate();
+
+    /* Start the TIM10 sample-rate timer + its update interrupt now that
+     * calibration is done. MX_TIM10_Init() only configures the peripheral;
+     * it never enables counting or the update interrupt, so without this
+     * call MPU6050_ScheduleUpdate() is never invoked no matter how the
+     * ISR callback is wired. */
+    HAL_TIM_Base_Start_IT(&htim10);
 
     return 1;
 }
@@ -225,6 +233,14 @@ float MPU6050_GetYawWrapped(void)
     if (yaw > 180.0f)  yaw -= 360.0f;
     if (yaw <= -180.0f) yaw += 360.0f;
     return yaw;
+}
+
+/* Returns the raw, UNBOUNDED yaw accumulator. Intended for wiring into
+ * mouse->actual_angle in encoders.c — do NOT wrap the result before storing
+ * it; wrap only at the point of computing an error (MPU6050_ShortestAngleError). */
+float MPU6050_GetYawRaw(void)
+{
+    return mpu.yaw_angle;
 }
 
 /* Alternative: 0–360° wrapping */

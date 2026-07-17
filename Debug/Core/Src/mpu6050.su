@@ -1,0 +1,10 @@
+../Core/Src/mpu6050.c:45:13:MPU6050_WriteWord	40	static
+../Core/Src/mpu6050.c:54:6:MPU6050_SetHardwareOffsets	24	static
+../Core/Src/mpu6050.c:65:9:MPU6050_Init	32	static
+../Core/Src/mpu6050.c:100:6:MPU6050_Calibrate	48	static
+../Core/Src/mpu6050.c:120:6:MPU6050_ScheduleUpdate	4	static
+../Core/Src/mpu6050.c:125:6:MPU6050_Service	24	static,ignoring_inline_asm
+../Core/Src/mpu6050.c:157:6:MPU6050_Update	48	static
+../Core/Src/mpu6050.c:206:7:MPU6050_ShortestAngleError	24	static
+../Core/Src/mpu6050.c:222:7:MPU6050_GetYawWrapped	16	static
+../Core/Src/mpu6050.c:231:7:MPU6050_GetYaw360	16	static

@@ -224,6 +224,16 @@ int main(void)
           mouse.right_front_sensor_mm = Sensor_GetRightFront(SENSOR_MM);
           mouse.left_side_sensor_mm   = Sensor_GetLeftSide(SENSOR_MM);
           mouse.right_side_sensor_mm  = Sensor_GetRightSide(SENSOR_MM);
+          
+          /* Hardcoded side IR calibrations */
+          if (mouse.right_side_sensor_mm > 80.0f) {
+              mouse.right_side_sensor_mm -= 15.0f; /* Overestimates beyond 8cm */
+          }
+          
+          if (mouse.left_side_sensor_mm < 25.0f || mouse.left_side_sensor_mm > 35.0f) {
+              mouse.left_side_sensor_mm += 10.0f;  /* Reads -1cm for everything except ~3cm */
+          }
+
           flag_sensors = false;
           flag_sensors_in_progress = false;
       }

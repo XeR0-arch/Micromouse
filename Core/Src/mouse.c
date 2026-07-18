@@ -87,7 +87,15 @@ void Mouse_ControllerForward(Mouse_t *m)
     /* Arrival check (within 5mm) */
     if (m->distance_to_travel > 5.0f)
     {
-        m->forward = out;
+        /* Simple acceleration limiter (prevents wheelies)
+         * Limits how fast the forward speed can increase, 
+         * but lets the PD controller fully handle rapid deceleration. */
+        float max_accel = 0.75f; /* Max RPM increase per ms */
+        if (out > m->forward + max_accel) {
+            m->forward += max_accel;
+        } else {
+            m->forward = out;
+        }
     }
     else
     {
